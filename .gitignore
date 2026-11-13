@@ -1,0 +1,5 @@
+# Ảnh tách thô từ PDF brand (132MB) — trang web không dùng, không đưa lên repo công khai
+extracted_assets/
+
+.DS_Store
+.playwright-cli/

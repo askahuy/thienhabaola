@@ -1,0 +1,2414 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>THIÊN HÀ BAO LA — Khám Phá 5 Thiên Hà DOME 360°</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #030306;
+      --panel: rgba(9, 10, 16, 0.96);
+      --panel-solid: #0c0d14;
+      --hairline: rgba(255, 255, 255, 0.1);
+      --hairline-bright: rgba(255, 255, 255, 0.26);
+      --text: #f4f3ef;
+      --text-dim: rgba(244, 243, 239, 0.58);
+      --text-faint: rgba(244, 243, 239, 0.34);
+      --accent: #e8c99b;
+      --mono: 'JetBrains Mono', monospace;
+      --serif: 'Instrument Serif', Georgia, serif;
+      --sans: 'Be Vietnam Pro', -apple-system, sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--sans);
+      -webkit-font-smoothing: antialiased;
+      user-select: none;
+    }
+
+
+
+    /* PRELOADER */
+    #preloader {
+      position: fixed;
+      inset: 0;
+      z-index: 200;
+      background: #030306;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 32px 40px;
+      transition: opacity 0.7s ease, visibility 0.7s;
+    }
+    #preloader.done {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+    }
+    .pre-top, .pre-meta {
+      display: flex;
+      justify-content: space-between;
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--text-dim);
+    }
+    .pre-num {
+      text-align: center;
+      font-family: var(--serif);
+      font-style: italic;
+      font-size: clamp(72px, 12vw, 144px);
+      line-height: 1;
+    }
+    .pre-track {
+      width: 100%;
+      height: 1px;
+      background: var(--hairline);
+      margin-bottom: 12px;
+      position: relative;
+    }
+    .pre-fill {
+      position: absolute;
+      left: 0;
+      top: 0;
+      height: 1px;
+      background: var(--text);
+      width: 0%;
+      transition: width 0.12s ease-out;
+    }
+
+    /* 3D WEBGL STAGE */
+    #webgl {
+      position: fixed;
+      inset: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: 1;
+      cursor: grab;
+    }
+    #webgl:active {
+      cursor: grabbing;
+    }
+
+    /* 3D GALAXY ANCHOR LABELS (Projected onto 2D screen coordinates) */
+    #galaxy-markers {
+      position: fixed;
+      inset: 0;
+      z-index: 15;
+      pointer-events: none;
+      transition: opacity 0.45s ease;
+    }
+    body.in-galaxy #galaxy-markers {
+      opacity: 0;
+      pointer-events: none;
+    }
+    body.in-galaxy .g-marker { pointer-events: none !important; } /* nhãn ẩn không được chặn kéo xoay */
+    .g-marker .g-reticle { display: none; } /* hành tinh 3D giờ là điểm neo, không cần vòng ngắm */
+
+    .g-marker {
+      position: absolute;
+      left: 0;
+      top: 0;
+      transform: translate(-50%, 0);
+      pointer-events: auto;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.25s;
+    }
+    .g-marker:hover {
+      transform: translate(-50%, 0) scale(1.08);
+      z-index: 30;
+    }
+    .g-reticle {
+      width: 46px;
+      height: 46px;
+      border-radius: 50%;
+      border: 1px solid rgba(255, 255, 255, 0.28);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      transition: all 0.3s ease;
+      background: radial-gradient(circle, rgba(255,255,255,0.08) 0%, transparent 70%);
+    }
+    .g-reticle::before {
+      content: "";
+      position: absolute;
+      inset: -6px;
+      border-radius: 50%;
+      border: 1px dashed rgba(255, 255, 255, 0.22);
+      animation: spinReticle 18s linear infinite;
+    }
+    .g-core-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--g-color, #e8c99b);
+      box-shadow: 0 0 14px var(--g-color, #e8c99b);
+    }
+    .g-marker:hover .g-reticle {
+      border-color: var(--g-color, #e8c99b);
+      box-shadow: 0 0 28px var(--g-color, #e8c99b);
+      transform: scale(1.12);
+    }
+    @keyframes spinReticle {
+      to { transform: rotate(360deg); }
+    }
+
+    .g-tag {
+      background: rgba(6, 7, 12, 0.92);
+      border: 1px solid var(--hairline-bright);
+      padding: 7px 14px;
+      text-align: center;
+      min-width: 190px;
+      transition: border-color 0.25s, background 0.25s;
+    }
+    .g-marker:hover .g-tag {
+      border-color: var(--g-color, #e8c99b);
+      background: rgba(14, 15, 24, 0.94);
+    }
+    .g-code {
+      font-family: var(--mono);
+      font-size: 9.5px;
+      letter-spacing: 0.16em;
+      color: var(--g-color, #e8c99b);
+      text-transform: uppercase;
+      display: block;
+      margin-bottom: 2px;
+    }
+    .g-title {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text);
+      letter-spacing: -0.01em;
+    }
+    .g-enter-hint {
+      font-family: var(--mono);
+      font-size: 9px;
+      letter-spacing: 0.12em;
+      color: var(--text-dim);
+      margin-top: 3px;
+      opacity: 0;
+      max-height: 0;
+      overflow: hidden;
+      transition: all 0.25s ease;
+    }
+    .g-marker:hover .g-enter-hint {
+      opacity: 1;
+      max-height: 20px;
+    }
+
+    /* COCKPIT EDGE-FRAME HUD */
+    .hud-frame {
+      position: fixed;
+      inset: 0;
+      z-index: 40;
+      pointer-events: none;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 22px 28px;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      margin: 10px;
+    }
+    .hud-top, .hud-bottom {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      pointer-events: auto;
+    }
+    .brand-link {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      text-decoration: none;
+      color: var(--text);
+      cursor: pointer;
+    }
+    .brand-link img {
+      height: 30px;
+      width: auto;
+    }
+    .brand-sub {
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: 0.14em;
+      color: var(--text-dim);
+      border-left: 1px solid var(--hairline-bright);
+      padding-left: 12px;
+    }
+
+    /* Quick 5-Galaxy Bar in Top HUD */
+    .galaxy-quickbar {
+      display: flex;
+      background: rgba(8, 9, 14, 0.82);
+      border: 1px solid var(--hairline-bright);
+      padding: 3px;
+      gap: 2px;
+    }
+    .q-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-dim);
+      font-family: var(--mono);
+      font-size: 10.5px;
+      letter-spacing: 0.06em;
+      padding: 7px 12px;
+      cursor: pointer;
+      text-transform: uppercase;
+      transition: all 0.2s;
+    }
+    .q-btn:hover {
+      color: var(--text);
+      background: rgba(255,255,255,0.06);
+    }
+    .q-btn.active {
+      background: var(--text);
+      color: #030306;
+      font-weight: 600;
+    }
+
+    .tactile-btn {
+      background: var(--panel-solid);
+      border: 1px solid var(--hairline-bright);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.12), 0 2px 6px rgba(0,0,0,0.65);
+      color: var(--text);
+      font-family: var(--mono);
+      font-size: 10.5px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 8px 14px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      text-decoration: none;
+      transition: all 0.15s;
+    }
+    .tactile-btn:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+    .tactile-btn.active {
+      border-color: var(--accent);
+      background: rgba(232, 201, 155, 0.12);
+    }
+    .led-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.22);
+    }
+    .tactile-btn.active .led-dot {
+      background: var(--accent);
+      box-shadow: 0 0 8px var(--accent);
+    }
+
+    /* OVERVIEW CENTER BANNER (Visible only in Universe Overview) */
+    .universe-prompt {
+      position: fixed;
+      left: 38px;
+      bottom: 68px;
+      z-index: 20;
+      max-width: 460px;
+      pointer-events: none;
+      transition: opacity 0.45s ease, transform 0.45s ease;
+    }
+    body.in-galaxy .universe-prompt {
+      opacity: 0;
+      transform: translateY(16px);
+    }
+    .prompt-eyebrow {
+      font-family: var(--mono);
+      font-size: 10.5px;
+      letter-spacing: 0.18em;
+      color: var(--accent);
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+    .prompt-h1 {
+      font-size: clamp(24px, 2.8vw, 38px);
+      font-weight: 300;
+      line-height: 1.15;
+      letter-spacing: -0.02em;
+      margin-bottom: 10px;
+    }
+    .prompt-h1 em {
+      font-family: var(--serif);
+      font-style: italic;
+      color: var(--accent);
+      font-weight: 400;
+    }
+    .prompt-sub {
+      font-size: 13px;
+      color: var(--text-dim);
+      line-height: 1.6;
+    }
+
+    /* INSIDE-GALAXY EXPLORATION VIEWPORT (Opens when flying into a galaxy) */
+    #galaxy-interior {
+      position: fixed;
+      inset: 0;
+      z-index: 35;
+      pointer-events: none;
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      padding: 76px 38px 64px;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.28s cubic-bezier(0.22, 1, 0.36, 1), visibility 0.28s;
+    }
+    body.in-galaxy #galaxy-interior {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    /* Left side floating title inside the chosen galaxy */
+    .interior-left-hud {
+      position: fixed;
+      left: 38px;
+      bottom: 68px;
+      max-width: 390px;
+      pointer-events: auto;
+    }
+    .back-universe-btn {
+      margin-bottom: 18px;
+      background: rgba(232, 201, 155, 0.14);
+      border: 1px solid var(--accent);
+      color: var(--text);
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: 0.1em;
+      padding: 10px 18px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      text-transform: uppercase;
+      transition: all 0.2s;
+    }
+    .back-universe-btn:hover {
+      background: var(--accent);
+      color: #030306;
+      font-weight: 600;
+    }
+    .step-nav { display: flex; gap: 6px; margin: -6px 0 16px; }
+
+    /* Right side architectural inspection console */
+    .interior-console {
+      width: min(760px, 100%);
+      max-height: calc(100vh - 145px);
+      overflow-y: auto;
+      pointer-events: auto;
+      background: var(--panel);
+      border: 1px solid var(--hairline-bright);
+      box-shadow: 0 30px 90px rgba(0, 0, 0, 0.85);
+      padding: 32px;
+      user-select: text;
+      transform: translateX(22px);
+      will-change: transform, opacity;
+      transition: transform 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+    body.in-galaxy .interior-console {
+      transform: translateX(0);
+    }
+    .interior-console::-webkit-scrollbar {
+      width: 4px;
+    }
+    .interior-console::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.22);
+    }
+
+    .galaxy-pane {
+      display: none;
+    }
+    .galaxy-pane.active {
+      display: block;
+      animation: fadePane 0.35s ease;
+    }
+    @keyframes fadePane {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .pane-header {
+      border-bottom: 1px solid var(--hairline);
+      padding-bottom: 18px;
+      margin-bottom: 22px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+    }
+    .pane-index {
+      font-family: var(--mono);
+      font-size: 10.5px;
+      letter-spacing: 0.16em;
+      color: var(--accent);
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+    .pane-title {
+      font-size: clamp(24px, 3vw, 36px);
+      font-weight: 300;
+      line-height: 1.12;
+      letter-spacing: -0.02em;
+    }
+    .pane-title em {
+      font-family: var(--serif);
+      font-style: italic;
+      color: var(--accent);
+      font-weight: 400;
+    }
+
+    /* Hairline Grid inside Panes */
+    .hairline-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      border-top: 1px solid var(--hairline-bright);
+      border-left: 1px solid var(--hairline-bright);
+      margin: 18px 0;
+    }
+    .h-cell {
+      border-right: 1px solid var(--hairline-bright);
+      border-bottom: 1px solid var(--hairline-bright);
+      padding: 18px;
+      background: rgba(255, 255, 255, 0.015);
+      transition: background 0.2s;
+    }
+    .h-cell:hover {
+      background: rgba(255, 255, 255, 0.045);
+    }
+    .h-num {
+      font-family: var(--mono);
+      font-size: 10px;
+      color: var(--accent);
+      letter-spacing: 0.12em;
+      margin-bottom: 8px;
+      display: block;
+    }
+    .h-cell h4 {
+      font-size: 15.5px;
+      font-weight: 500;
+      margin-bottom: 6px;
+    }
+    .h-cell p {
+      font-size: 13px;
+      color: var(--text-dim);
+      line-height: 1.55;
+    }
+
+    /* Interactive Optical Frame inside Galaxy 03 */
+    .optical-stage {
+      border: 1px solid var(--hairline-bright);
+      background: #06060a;
+      position: relative;
+      height: 270px;
+      overflow: hidden;
+      margin: 14px 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .optical-stage img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 0.4s ease;
+    }
+    .optical-stage img.contain {
+      object-fit: contain;
+      padding: 14px;
+    }
+
+    /* Hardware Detent Rotary Dial inside Galaxy 03 */
+    .hardware-box {
+      display: grid;
+      grid-template-columns: 210px 1fr;
+      gap: 22px;
+      align-items: center;
+      border: 1px solid var(--hairline-bright);
+      background: rgba(5, 5, 9, 0.72);
+      padding: 20px;
+      margin-top: 18px;
+    }
+    .dial-plate {
+      position: relative;
+      width: 165px;
+      height: 165px;
+      margin: 14px auto;
+      border-radius: 50%;
+      background: radial-gradient(circle at 35% 30%, #1d1d26, #09090d 75%);
+      border: 1px solid rgba(255,255,255,0.18);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 12px 30px rgba(0,0,0,0.85);
+      user-select: none;
+    }
+    .dial-knob {
+      width: 102px;
+      height: 102px;
+      border-radius: 50%;
+      background: conic-gradient(from 0deg, #18181f, #2a2a36, #121217, #262632, #18181f);
+      border: 1px solid rgba(255,255,255,0.24);
+      position: relative;
+      cursor: pointer;
+      transition: transform 0.36s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    .dial-mark {
+      position: absolute;
+      top: 8px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 3px;
+      height: 14px;
+      background: var(--accent);
+      box-shadow: 0 0 8px var(--accent);
+    }
+    .dial-lbl {
+      position: absolute;
+      font-family: var(--mono);
+      font-size: 9px;
+      color: var(--text-dim);
+      cursor: pointer;
+      letter-spacing: 0.08em;
+    }
+    .dial-lbl.active {
+      color: var(--accent);
+      font-weight: 600;
+    }
+    .d-0 { top: -16px; left: 50%; transform: translateX(-50%); }
+    .d-1 { bottom: -12px; left: -6px; }
+    .d-2 { bottom: -12px; right: -6px; }
+
+    .pane-nav-footer {
+      margin-top: 24px;
+      padding-top: 16px;
+      border-top: 1px solid var(--hairline);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    @media (max-width: 960px) {
+      .galaxy-quickbar, .interior-left-hud {
+        display: none;
+      }
+      #galaxy-interior {
+        padding: 68px 14px 54px;
+      }
+      .hairline-grid, .hardware-box {
+        grid-template-columns: 1fr;
+      }
+    }
+    /* ===== ART LAYER (assets từ brand PDF) ===== */
+    #cosmos-bg {
+      position: fixed;
+      inset: -4%;
+      z-index: 0;
+      background: url('assets/bg-cosmos.webp') center / cover no-repeat;
+      opacity: 0.85;
+      will-change: transform, opacity;
+      transition: opacity 0.32s ease;
+    }
+    #cosmos-bg::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: url('assets/bg-nebula-field.webp') center / cover no-repeat;
+      opacity: 0.25;
+    }
+    body.in-galaxy #cosmos-bg { opacity: 0.45; }
+    .vignette {
+      position: fixed;
+      inset: 0;
+      z-index: 2;
+      pointer-events: none;
+      background: radial-gradient(ellipse at center, transparent 45%, rgba(2, 2, 6, 0.75) 100%);
+    }
+
+    .hero-figure {
+      position: relative;
+      margin: 14px 0;
+      border: 1px solid var(--hairline-bright);
+      overflow: hidden;
+      aspect-ratio: 16 / 8;
+    }
+    .hero-figure img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transform: scale(1.04);
+      transition: transform 1.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .hero-figure:hover img { transform: scale(1.1); }
+    .hero-figure figcaption {
+      position: absolute;
+      left: 0; right: 0; bottom: 0;
+      padding: 28px 14px 10px;
+      background: linear-gradient(transparent, rgba(3, 3, 8, 0.9));
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: 0.14em;
+      color: var(--text-dim);
+    }
+
+    /* 5 bước dạng orb 3D */
+    .orb-steps {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      position: relative;
+      gap: 6px;
+    }
+    .orb-steps::before {
+      content: "";
+      position: absolute;
+      left: 10%; right: 10%; top: 44px;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(160, 140, 255, 0.6), transparent);
+    }
+    .orb-step {
+      text-align: center;
+      cursor: pointer;
+      position: relative;
+    }
+    .orb-step img {
+      width: 88px;
+      height: 88px;
+      object-fit: contain;
+      filter: saturate(0.7) brightness(0.75);
+      transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1), filter 0.35s;
+    }
+    .orb-step:hover img, .orb-step.active img {
+      transform: translateY(-6px) scale(1.08);
+      filter: saturate(1.15) brightness(1.1) drop-shadow(0 0 18px rgba(120, 110, 255, 0.55));
+    }
+    .orb-step .h-num { display: block; margin-top: 4px; }
+    .orb-step h4 { font-size: 13px; font-weight: 500; margin-top: 2px; }
+    .orb-detail {
+      margin-top: 12px;
+      border-top: 1px solid var(--hairline);
+      padding-top: 12px;
+      font-size: 13px;
+      color: var(--text-dim);
+      line-height: 1.6;
+      min-height: 44px;
+    }
+
+    /* DOMI stage */
+    .domi-stage {
+      display: grid;
+      grid-template-columns: 220px 1fr;
+      gap: 20px;
+      align-items: center;
+      border: 1px solid var(--hairline-bright);
+      padding: 18px;
+      background: url('assets/bg-stage-platform.webp') center 70% / cover no-repeat;
+      position: relative;
+    }
+    .domi-stage::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(90deg, transparent 30%, rgba(4, 4, 10, 0.88) 60%);
+    }
+    .domi-stage > * { position: relative; }
+    .domi-figure {
+      height: 230px;
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      cursor: pointer;
+    }
+    .domi-figure img {
+      max-height: 210px;
+      max-width: 100%;
+      animation: domiFloat 4s ease-in-out infinite;
+      filter: drop-shadow(0 18px 24px rgba(80, 60, 255, 0.45));
+      transition: opacity 0.25s;
+    }
+    @keyframes domiFloat {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
+    }
+    .pose-btns { display: flex; gap: 6px; margin-top: 12px; flex-wrap: wrap; }
+
+    /* holo icons cho marketing levers */
+    .h-cell .holo {
+      height: 64px;
+      width: auto;
+      max-width: 120px;
+      object-fit: contain;
+      display: block;
+      margin-bottom: 10px;
+      transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), filter 0.4s;
+      filter: brightness(0.85);
+    }
+    .h-cell:hover .holo { transform: translateY(-4px) scale(1.06); filter: brightness(1.15) drop-shadow(0 0 14px rgba(90, 160, 255, 0.5)); }
+  </style>
+</head>
+<body>
+
+  <!-- 0. PRELOADER -->
+  <div id="preloader">
+    <div class="pre-top">
+      <span>THIÊN HÀ BAO LA // 5-GALAXY INTERACTIVE SYSTEM</span>
+      <span>DOME 360° ARCHITECTURE</span>
+    </div>
+    <div class="pre-num" id="preNum">00</div>
+    <div>
+      <div class="pre-track"><div class="pre-fill" id="preFill"></div></div>
+      <div class="pre-meta">
+        <span id="preText">Generating 5 interactive spiral galaxies...</span>
+        <span id="prePct">0%</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 1. 3D WEBGL UNIVERSE STAGE -->
+  <div id="cosmos-bg"></div>
+  <canvas id="webgl"></canvas>
+  <div class="vignette"></div>
+
+  <!-- 2. 5 FLOATING GALAXY MARKERS IN 3D SPACE -->
+  <div id="galaxy-markers">
+    <div class="g-marker" data-g="0" style="--g-color: #e8c99b;">
+      <div class="g-reticle"><span class="g-core-dot"></span></div>
+      <div class="g-tag">
+        <span class="g-code">THIÊN HÀ 01 // ALPHA</span>
+        <div class="g-title">Bối Cảnh &amp; Định Vị</div>
+        <div class="g-enter-hint">[ CLICK ĐỂ ĐI VÀO THIÊN HÀ → ]</div>
+      </div>
+    </div>
+
+    <div class="g-marker" data-g="1" style="--g-color: #64dfdf;">
+      <div class="g-reticle"><span class="g-core-dot"></span></div>
+      <div class="g-tag">
+        <span class="g-code">THIÊN HÀ 02 // BETA</span>
+        <div class="g-title">Mô Hình Show &amp; Vận Hành</div>
+        <div class="g-enter-hint">[ CLICK ĐỂ ĐI VÀO THIÊN HÀ → ]</div>
+      </div>
+    </div>
+
+    <div class="g-marker" data-g="2" style="--g-color: #c77dff;">
+      <div class="g-reticle"><span class="g-core-dot"></span></div>
+      <div class="g-tag">
+        <span class="g-code">THIÊN HÀ 03 // DOME 360°</span>
+        <div class="g-title">Không Gian Vòm &amp; 3 Layout</div>
+        <div class="g-enter-hint">[ CLICK ĐỂ ĐI VÀO THIÊN HÀ → ]</div>
+      </div>
+    </div>
+
+    <div class="g-marker" data-g="3" style="--g-color: #ff47b6;">
+      <div class="g-reticle"><span class="g-core-dot"></span></div>
+      <div class="g-tag">
+        <span class="g-code">THIÊN HÀ 04 // DELTA</span>
+        <div class="g-title">Trải Nghiệm &amp; Đại Sứ DOMI</div>
+        <div class="g-enter-hint">[ CLICK ĐỂ ĐI VÀO THIÊN HÀ → ]</div>
+      </div>
+    </div>
+
+    <div class="g-marker" data-g="4" style="--g-color: #fbbf24;">
+      <div class="g-reticle"><span class="g-core-dot"></span></div>
+      <div class="g-tag">
+        <span class="g-code">THIÊN HÀ 05 // OMEGA</span>
+        <div class="g-title">Marketing, CSKH &amp; Liên Hệ</div>
+        <div class="g-enter-hint">[ CLICK ĐỂ ĐI VÀO THIÊN HÀ → ]</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. COCKPIT EDGE-FRAME HUD -->
+  <div class="hud-frame">
+    <div class="hud-top">
+      <div class="brand-link" id="homeLogoBtn" title="Quay về toàn cảnh 5 Thiên Hà">
+        <img src="assets/logo.webp" alt="Thiên Hà Bao La" />
+        <span class="brand-sub">DOME 360° UNIVERSE</span>
+      </div>
+
+      <nav class="galaxy-quickbar" aria-label="5 Galaxies Navigation">
+        <button class="q-btn active" data-g="overview">ALL (5 THIÊN HÀ)</button>
+        <button class="q-btn" data-g="0">01 / Định Vị</button>
+        <button class="q-btn" data-g="1">02 / Mô Hình</button>
+        <button class="q-btn" data-g="2">03 / DOME 360°</button>
+        <button class="q-btn" data-g="3">04 / DOMI</button>
+        <button class="q-btn" data-g="4">05 / Marketing</button>
+      </nav>
+
+      <div style="display: flex; gap: 8px;">
+        <button class="tactile-btn" id="soundBtn" type="button">
+          <span class="led-dot"></span>
+          <span id="soundTxt">SOUND: OFF</span>
+        </button>
+        <button class="tactile-btn" id="directContactBtn" type="button">
+          BOOK SHOW →
+        </button>
+      </div>
+    </div>
+
+    <div class="hud-bottom">
+      <div style="font-family: var(--mono); font-size: 10.5px; color: var(--text-dim); letter-spacing: 0.08em;">
+        STATUS: <strong id="hudStatus" style="color: var(--accent);">UNIVERSE OVERVIEW // CHỌN 1 TRONG 5 THIÊN HÀ ĐỂ KHÁM PHÁ</strong>
+      </div>
+      <div id="hudHint" style="font-family: var(--mono); font-size: 10.5px; color: var(--text-dim); letter-spacing: 0.08em;">
+        [ KÉO CHUỘT ĐỂ XOAY VŨ TRỤ • ẤN VÀO THIÊN HÀ ĐỂ BAY VÀO ]
+      </div>
+    </div>
+  </div>
+
+  <!-- 4. UNIVERSE OVERVIEW PROMPT (Bottom Left in Overview Mode) -->
+  <div class="universe-prompt">
+    <div class="prompt-eyebrow">PRIVATE MUSIC SHOW // DOME 360°</div>
+    <h1 class="prompt-h1">
+      Giữa thiên hà bao la, kiến tạo <em>một hành tinh độc bản</em>.
+    </h1>
+    <p class="prompt-sub">
+      Mỗi thiên hà trên màn hình là một chương trong hồ sơ <strong>Thiên Hà Bao La</strong>. Hãy nhấp trực tiếp vào từng thiên hà để bay vào bên trong và tương tác.
+    </p>
+  </div>
+
+  <!-- 5. INTERIOR EXPLORATION CONSOLE (Revealed when inside a galaxy) -->
+  <div id="galaxy-interior">
+    <div class="interior-left-hud">
+      <button class="back-universe-btn" id="backUniverseBtn" type="button">
+        ← THOÁT RA VŨ TRỤ 5 THIÊN HÀ (ESC)
+      </button>
+      <div class="step-nav">
+        <button class="tactile-btn" id="navPrevBtn" type="button" title="Thiên hà trước (phím ↑)">↑ THIÊN HÀ TRƯỚC</button>
+        <button class="tactile-btn" id="navNextBtn" type="button" title="Thiên hà kế (phím ↓)">↓ THIÊN HÀ KẾ</button>
+      </div>
+      <div style="font-family: var(--mono); font-size: 10px; color: var(--accent); letter-spacing: 0.16em;" id="leftGalCode">
+        THIÊN HÀ 01 // ALPHA
+      </div>
+      <h2 style="font-size: 32px; font-weight: 300; line-height: 1.15; margin: 6px 0 10px;" id="leftGalTitle">
+        Bối Cảnh &amp; Định Vị
+      </h2>
+      <p style="font-size: 12.5px; color: var(--text-dim); line-height: 1.6;" id="leftGalDesc">
+        Bạn đang ở bên trong tâm thiên hà. Kéo nền 3D phía sau để quan sát cấu trúc hạt ở mọi góc độ.
+      </p>
+    </div>
+
+    <div class="interior-console" id="interiorConsole">
+      <!-- ==================== GALAXY 01: BỐI CẢNH & ĐỊNH VỊ ==================== -->
+      <div class="galaxy-pane active" data-pane="0">
+        <div class="pane-header">
+          <div>
+            <div class="pane-index">THIÊN HÀ 01 // I. BỐI CẢNH &amp; ĐỊNH VỊ</div>
+            <h3 class="pane-title">Từ “Thưởng thức” sang <em>“Trải nghiệm nhập vai”</em></h3>
+          </div>
+          <span style="font-family: var(--mono); font-size: 11px; color: var(--text-dim);">BUY-OUT CONCEPT</span>
+        </div>
+
+        <p style="font-size: 14px; color: var(--text-dim); line-height: 1.65;">
+          Khán giả hiện đại không chỉ nghe nhạc trên sân khấu phẳng 2D truyền thống mà khao khát đắm mình trong không gian đa giác quan. Khác với show đại chúng bị giới hạn bởi địa điểm có sẵn, <strong style="color:var(--text);">Thiên Hà Bao La</strong> là mô hình <strong style="color:var(--accent);">Private Music Show (Buy-Out Show)</strong> — doanh nghiệp sở hữu trọn một concept được thiết kế riêng từ con số 0.
+        </p>
+
+        <figure class="hero-figure">
+          <img src="assets/kv-dome-stage.webp" alt="Key visual DOME 360° Thiên Hà Bao La" loading="lazy" />
+          <figcaption>KEY VISUAL // DOME 360° — MỘT ĐÊM NHẠC RIÊNG CHO KHÁCH HÀNG, ĐỐI TÁC &amp; CBNV</figcaption>
+        </figure>
+
+        <div class="hairline-grid">
+          <div class="h-cell">
+            <span class="h-num">01 // THE GALAXY</span>
+            <h4>Mỗi Show Là 1 Hành Tinh Độc Bản</h4>
+            <p>“Thiên Hà” đại diện cho chuỗi chương trình âm nhạc đa sắc màu mà mỗi đêm diễn của doanh nghiệp là một hành tinh mang bản sắc riêng.</p>
+          </div>
+          <div class="h-cell">
+            <span class="h-num">02 // CITIZENS</span>
+            <h4>Cư Dân Hành Tinh Âm Nhạc</h4>
+            <p>Mỗi khách hàng, đối tác và CBNV bước vào DOME 360° trở thành một cư dân thực thụ sống trong câu chuyện của thương hiệu.</p>
+          </div>
+          <div class="h-cell">
+            <span class="h-num">03 // BEYOND 2D</span>
+            <h4>Vũ Trụ Tự Do Không Giới Hạn</h4>
+            <p>Xóa bỏ hoàn toàn khoảng cách vật lý giữa nghệ sĩ và khán giả, nơi âm nhạc kết nối cùng ánh sáng và chuyển động 360°.</p>
+          </div>
+          <div class="h-cell">
+            <span class="h-num">04 // CO-CREATION</span>
+            <h4>Đồng Kiến Tạo Cảm Xúc</h4>
+            <p>Khán giả cùng hòa mình tương tác trực tiếp với chương trình, tạo nên sự gắn kết sâu sắc với nhãn hàng.</p>
+          </div>
+        </div>
+
+        <div class="pane-nav-footer">
+          <button class="tactile-btn" onclick="returnToUniverse()">← QUAY LẠI BẢN ĐỒ VŨ TRỤ</button>
+          <button class="tactile-btn active" onclick="enterGalaxy(1)">BAY TỚI THIÊN HÀ 02: MÔ HÌNH SHOW →</button>
+        </div>
+      </div>
+
+      <!-- ==================== GALAXY 02: MÔ HÌNH SHOW & VẬN HÀNH ==================== -->
+      <div class="galaxy-pane" data-pane="1">
+        <div class="pane-header">
+          <div>
+            <div class="pane-index">THIÊN HÀ 02 // II. MÔ HÌNH SHOW &amp; VẬN HÀNH</div>
+            <h3 class="pane-title">Doanh nghiệp sở hữu riêng <em>một nhà hát độc bản</em></h3>
+          </div>
+          <span style="font-family: var(--mono); font-size: 11px; color: var(--text-dim);">5-STEP OPERATION</span>
+        </div>
+
+        <p style="font-size: 14px; color: var(--text-dim); line-height: 1.65;">
+          Sự giao thoa hoàn hảo giữa <strong style="color:var(--text);">Nhãn hàng × Nghệ sĩ × Khán giả</strong>. Doanh nghiệp lựa chọn mục tiêu và khách mời; Thiên Hà Bao La đảm nhiệm toàn bộ format, sản xuất visual 3D và vận hành thương mại bài bản.
+        </p>
+
+        <div class="hairline-grid" style="grid-template-columns: repeat(3, 1fr);">
+          <div class="h-cell">
+            <span class="h-num">MỤC TIÊU 01</span>
+            <h4>Dấu Ấn Thương Hiệu</h4>
+            <p>Thiết kế đêm nhạc theo đúng tinh thần, hình ảnh và thông điệp riêng của từng nhãn hàng.</p>
+          </div>
+          <div class="h-cell">
+            <span class="h-num">MỤC TIÊU 02</span>
+            <h4>Trải Nghiệm Khác Biệt</h4>
+            <p>Không gian gặp gỡ, tri ân và kết nối khách hàng VIP qua nghệ thuật đa giác quan.</p>
+          </div>
+          <div class="h-cell">
+            <span class="h-num">MỤC TIÊU 03</span>
+            <h4>Lan Tỏa Truyền Thông</h4>
+            <p>Tạo làn sóng thảo luận tự nhiên và nâng tầm vị thế thương hiệu trên đa nền tảng.</p>
+          </div>
+        </div>
+
+        <div style="font-family: var(--mono); font-size: 10.5px; color: var(--accent); letter-spacing: 0.14em; margin: 18px 0 10px;">
+          QUY TRÌNH 5 BƯỚC TRIỂN KHAI TRỌN GÓI:
+        </div>
+        <div class="orb-steps" id="orbSteps">
+          <div class="orb-step active" data-detail="Phù hợp tệp khách mời & định hướng show — từ Ballad, Acoustic đến EDM bùng nổ."><img src="assets/orb-mic.webp" alt="Chọn Nghệ Sĩ" /><span class="h-num">BƯỚC 01</span><h4>Chọn Nghệ Sĩ</h4></div>
+          <div class="orb-step" data-detail="Doanh nghiệp chủ động lập danh sách khách hàng, đối tác hoặc CBNV."><img src="assets/orb-handshake.webp" alt="Chọn Khách Mời" /><span class="h-num">BƯỚC 02</span><h4>Chọn Khách Mời</h4></div>
+          <div class="orb-step" data-detail="Tích hợp thương hiệu vào mọi điểm chạm: visual vòm, kịch bản, quà tặng."><img src="assets/orb-checklist.webp" alt="Custom Show" /><span class="h-num">BƯỚC 03</span><h4>Custom Show</h4></div>
+          <div class="orb-step" data-detail="Triển khai âm nhạc, visual 3D mapping & sân khấu trọn gói."><img src="assets/orb-camera.webp" alt="Sản Xuất" /><span class="h-num">BƯỚC 04</span><h4>Sản Xuất</h4></div>
+          <div class="orb-step" data-detail="Đêm diễn bùng nổ trong vòm cầu Ø35m — khán giả được bao quanh bởi âm thanh & ánh sáng."><img src="assets/orb-dome.webp" alt="DOME 360°" /><span class="h-num">BƯỚC 05</span><h4>DOME 360°</h4></div>
+        </div>
+        <div class="orb-detail" id="orbDetail">Phù hợp tệp khách mời & định hướng show — từ Ballad, Acoustic đến EDM bùng nổ.</div>
+
+        <div class="pane-nav-footer">
+          <button class="tactile-btn" onclick="enterGalaxy(0)">← THIÊN HÀ 01</button>
+          <button class="tactile-btn active" onclick="enterGalaxy(2)">BAY TỚI THIÊN HÀ 03: KHÔNG GIAN DOME 360° →</button>
+        </div>
+      </div>
+
+      <!-- ==================== GALAXY 03: KHÔNG GIAN DOME 360° & 3 LAYOUT ==================== -->
+      <div class="galaxy-pane" data-pane="2">
+        <div class="pane-header">
+          <div>
+            <div class="pane-index">THIÊN HÀ 03 // III. HẠ TẦNG KHÔNG GIAN DOME 360°</div>
+            <h3 class="pane-title">Kiến trúc vòm <em>Ø35m × 17.5m</em> &amp; 3 Cấu hình</h3>
+          </div>
+          <span style="font-family: var(--mono); font-size: 11px; color: var(--accent);">8 INDEPENDENT GATES</span>
+        </div>
+
+        <!-- Optical Switcher for Dome Interior / Exterior / Blueprint -->
+        <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+          <button class="tactile-btn active dome-view-btn" data-src="assets/dome-led-wide.webp" data-contain="false">
+            <span class="led-dot"></span> TRẦN LED 360°
+          </button>
+          <button class="tactile-btn dome-view-btn" data-src="assets/kv-dome-stage.webp" data-contain="false">
+            <span class="led-dot"></span> KEY VISUAL
+          </button>
+          <button class="tactile-btn dome-view-btn" data-src="assets/dome-wireframe-orbit.webp" data-contain="true">
+            <span class="led-dot"></span> KHUNG VÒM 3D
+          </button>
+          <button class="tactile-btn dome-view-btn" data-src="assets/dome-immersive-crowd.webp" data-contain="false">
+            <span class="led-dot"></span> TRẢI NGHIỆM THỰC TẾ
+          </button>
+          <button class="tactile-btn dome-view-btn" data-src="assets/dome-interior.webp" data-contain="false">
+            <span class="led-dot"></span> LỚP TRONG VÒM 360°
+          </button>
+          <button class="tactile-btn dome-view-btn" data-src="assets/dome-exterior.webp" data-contain="false">
+            <span class="led-dot"></span> KIẾN TRÚC BÊN NGOÀI
+          </button>
+          <button class="tactile-btn dome-view-btn" data-src="assets/dome-blueprint.webp" data-contain="true">
+            <span class="led-dot"></span> MẶT CẮT KỸ THUẬT (35M × 17.5M)
+          </button>
+        </div>
+
+        <div class="optical-stage">
+          <img id="domeStageImg" src="assets/dome-led-wide.webp" alt="Không gian DOME 360" />
+        </div>
+
+        <!-- Tactile Hardware Rotary Dial for 3 Layouts -->
+        <div class="hardware-box">
+          <div style="text-align: center;">
+            <div style="font-family: var(--mono); font-size: 9.5px; color: var(--text-dim); margin-bottom: 8px;">
+              VẶN NÚM CHỌN LAYOUT
+            </div>
+            <div class="dial-plate">
+              <span class="dial-lbl d-0 active" data-l="0">848 SEATED</span>
+              <span class="dial-lbl d-1" data-l="1">1,200 HYBRID</span>
+              <span class="dial-lbl d-2" data-l="2">1,700 STANDING</span>
+              <div class="dial-knob" id="knobCtrl" title="Click để vặn chuyển cấu hình">
+                <div class="dial-mark"></div>
+              </div>
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 140px 1fr; gap: 16px; align-items: center;">
+            <img id="layoutThumb" src="assets/layout-seated.webp" alt="Layout" style="width: 135px; height: auto; border-radius: 50%; border: 1px solid var(--hairline-bright);" />
+            <div>
+              <div style="font-family: var(--mono); font-size: 10px; color: var(--accent);" id="lCode">LAYOUT 01 // SEATED SHOW</div>
+              <h4 style="font-size: 18px; margin: 4px 0 8px;" id="lTitle">Cấu Hình Thưởng Thức — 848 Khách</h4>
+              <p style="font-size: 12.5px; color: var(--text-dim); line-height: 1.55;" id="lDesc">
+                100% vị trí ngồi sang trọng, góc nhìn không bị che chắn. Dòng nhạc: Acoustic, Ballad, Lofi. Hệ thống 8 cổng đón khách độc lập xử lý check-in mượt mà.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div class="pane-nav-footer">
+          <button class="tactile-btn" onclick="enterGalaxy(1)">← THIÊN HÀ 02</button>
+          <button class="tactile-btn active" onclick="enterGalaxy(3)">BAY TỚI THIÊN HÀ 04: ĐẠI SỨ DOMI →</button>
+        </div>
+      </div>
+
+      <!-- ==================== GALAXY 04: TRẢI NGHIỆM KHÁN GIẢ & DOMI ==================== -->
+      <div class="galaxy-pane" data-pane="3">
+        <div class="pane-header">
+          <div>
+            <div class="pane-index">THIÊN HÀ 04 // IV. TRẢI NGHIỆM KHÁN GIẢ ĐA GIÁC QUAN</div>
+            <h3 class="pane-title">Quỹ đạo cảm xúc &amp; <em>Đại sứ DOMI</em></h3>
+          </div>
+          <span style="font-family: var(--mono); font-size: 11px; color: var(--text-dim);">SENSORY ORBIT</span>
+        </div>
+
+        <div class="domi-stage">
+          <div class="domi-figure" id="domiFigure" title="Click để xoay DOMI"><img id="domiImg" src="assets/domi.webp" alt="DOMI Mascot" /></div>
+          <div>
+            <span class="h-num">AMBASSADOR // DOMI</span>
+            <h4 style="font-size: 18px; margin-bottom: 6px;">DOMI — Sinh vật Thiên Hà Bao La</h4>
+            <p style="font-size: 13px; color: var(--text-dim); line-height: 1.6;">
+              Người bạn đồng hành xuyên suốt mọi trải nghiệm âm nhạc tại DOME, dẫn dắt khán giả đi qua 3 chặng quỹ đạo tương tác: <strong style="color:var(--text);">Before The Show → In The Show → Beyond The Show</strong>.
+            </p>
+            <div class="pose-btns">
+              <button class="tactile-btn active domi-pose" data-src="assets/domi.webp">MẶT TRƯỚC</button>
+              <button class="tactile-btn domi-pose" data-src="assets/domi-side.webp">NGHIÊNG</button>
+              <button class="tactile-btn domi-pose" data-src="assets/domi-back.webp">PHÍA SAU</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="hairline-grid" style="grid-template-columns: repeat(3, 1fr);">
+          <div class="h-cell">
+            <span class="h-num">01 // BEFORE THE SHOW</span>
+            <h4>Khởi Tạo Kết Nối</h4>
+            <p>• Gửi lời nhắn lên vòm trời<br/>• Bình chọn bài hát mở màn</p>
+          </div>
+          <div class="h-cell">
+            <span class="h-num">02 // IN THE SHOW</span>
+            <h4>Tương Tác Độc Bản</h4>
+            <p>• Hộp bí ẩn (Mystery Box)<br/>• Khoảnh khắc độc bản<br/>• Thử thách nghệ sĩ</p>
+          </div>
+          <div class="h-cell">
+            <span class="h-num">03 // BEYOND THE SHOW</span>
+            <h4>Dư Âm Đặc Quyền</h4>
+            <p>• Soundcheck riêng<br/>• Goodbye Stage &amp; Hi-bye (dành cho khán giả được chọn)</p>
+          </div>
+        </div>
+
+        <div style="font-family: var(--mono); font-size: 10px; color: var(--accent); letter-spacing: 0.14em; margin: 14px 0 8px;">
+          BỘ VẬT PHẨM QUẢNG BÁ CUSTOM THEO TỪNG SHOW &amp; NGHỆ SĨ:
+        </div>
+        <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; text-align: center;">
+          <div style="border: 1px solid var(--hairline); padding: 10px;">
+            <img src="assets/domi.webp" alt="Domi" style="height: 64px; object-fit: contain;" />
+            <div style="font-family: var(--mono); font-size: 9.5px; margin-top: 4px;">DOLL DOMI</div>
+          </div>
+          <div style="border: 1px solid var(--hairline); padding: 10px;">
+            <img src="assets/merch-lightstick.webp" alt="Lightstick" style="height: 64px; object-fit: contain;" />
+            <div style="font-family: var(--mono); font-size: 9.5px; margin-top: 4px;">LIGHTSTICK</div>
+          </div>
+          <div style="border: 1px solid var(--hairline); padding: 10px;">
+            <img src="assets/merch-tumbler.webp" alt="Tumbler" style="height: 64px; object-fit: contain;" />
+            <div style="font-family: var(--mono); font-size: 9.5px; margin-top: 4px;">BÌNH GIỮ NHIỆT</div>
+          </div>
+          <div style="border: 1px solid var(--hairline); padding: 10px;">
+            <img src="assets/merch-scarf.webp" alt="Scarf" style="height: 64px; object-fit: contain;" />
+            <div style="font-family: var(--mono); font-size: 9.5px; margin-top: 4px;">KHĂN CUSTOM</div>
+          </div>
+          <div style="border: 1px solid var(--hairline); padding: 10px;">
+            <img src="assets/merch-pillow.webp" alt="Pillow" style="height: 64px; object-fit: contain;" />
+            <div style="font-family: var(--mono); font-size: 9.5px; margin-top: 4px;">GỐI CỔ &amp; CARD</div>
+          </div>
+        </div>
+
+        <div class="pane-nav-footer">
+          <button class="tactile-btn" onclick="enterGalaxy(2)">← THIÊN HÀ 03</button>
+          <button class="tactile-btn active" onclick="enterGalaxy(4)">BAY TỚI THIÊN HÀ 05: MARKETING &amp; LIÊN HỆ →</button>
+        </div>
+      </div>
+
+      <!-- ==================== GALAXY 05: MARKETING, CSKH & LIÊN HỆ ==================== -->
+      <div class="galaxy-pane" data-pane="4">
+        <div class="pane-header">
+          <div>
+            <div class="pane-index">THIÊN HÀ 05 // V. MARKETING, CSKH &amp; CỔNG KẾT NỐI</div>
+            <h3 class="pane-title">Đòn bẩy doanh số &amp; <em>5 Giải pháp sự kiện</em></h3>
+          </div>
+          <span style="font-family: var(--mono); font-size: 11px; color: var(--accent);">ROI &amp; LOYALTY</span>
+        </div>
+
+        <div style="font-family: var(--mono); font-size: 10px; color: var(--accent); letter-spacing: 0.14em; margin-bottom: 8px;">
+          5 GIẢI PHÁP SỰ KIỆN LINH HOẠT CHO DOANH NGHIỆP:
+        </div>
+        <div class="hairline-grid" style="grid-template-columns: repeat(5, 1fr); margin-top: 0;">
+          <div class="h-cell" style="padding: 12px;">
+            <span class="h-num">01</span>
+            <h4 style="font-size: 13px;">Hội Nghị KH</h4>
+            <p style="font-size: 11.5px;">Kết hợp hội nghị &amp; đêm nhạc riêng.</p>
+          </div>
+          <div class="h-cell" style="padding: 12px;">
+            <span class="h-num">02</span>
+            <h4 style="font-size: 13px;">Tri Ân Đối Tác</h4>
+            <p style="font-size: 11.5px;">Đêm nhạc đặc quyền cho khách VIP.</p>
+          </div>
+          <div class="h-cell" style="padding: 12px;">
+            <span class="h-num">03</span>
+            <h4 style="font-size: 13px;">Sự Kiện Nội Bộ</h4>
+            <p style="font-size: 11.5px;">Gala, tổng kết, tôn vinh CBNV.</p>
+          </div>
+          <div class="h-cell" style="padding: 12px;">
+            <span class="h-num">04</span>
+            <h4 style="font-size: 13px;">Year End Party</h4>
+            <p style="font-size: 11.5px;">Đại tiệc âm nhạc cuối năm bùng nổ.</p>
+          </div>
+          <div class="h-cell" style="padding: 12px;">
+            <span class="h-num">05</span>
+            <h4 style="font-size: 13px;">Brand Event</h4>
+            <p style="font-size: 11.5px;">Kỷ niệm cột mốc &amp; ra mắt thương hiệu.</p>
+          </div>
+        </div>
+
+        <div style="font-family: var(--mono); font-size: 10px; color: var(--accent); letter-spacing: 0.14em; margin: 16px 0 8px;">
+          5 CHIẾN LƯỢC MARKETING &amp; CSKH KHAI THÁC ĐẶC QUYỀN ĐÊM NHẠC:
+        </div>
+        <div class="hairline-grid" style="margin-top: 0;">
+          <div class="h-cell">
+            <img class="holo" src="assets/holo-gift.webp" alt="" loading="lazy" />
+            <span class="h-num">01 // TOP SPENDER</span>
+            <h4>Kích Cầu Doanh Số Bán Lẻ</h4>
+            <p>Tặng vé VIP &amp; Merch chữ ký cho đơn hàng lớn, tăng giá trị trung bình mỗi đơn hàng.</p>
+          </div>
+          <div class="h-cell">
+            <img class="holo" src="assets/holo-live.webp" alt="" loading="lazy" />
+            <span class="h-num">02 // BRANDED GIVEAWAY &amp; LIVESTREAM</span>
+            <h4>Phủ Sóng Nhận Diện Số</h4>
+            <p>Minigame tặng vé trên Social kết hợp phát sóng trực tiếp không gian trải nghiệm &amp; hậu trường.</p>
+          </div>
+          <div class="h-cell">
+            <img class="holo" src="assets/holo-loyalty.webp" alt="" loading="lazy" />
+            <span class="h-num">03 // MULTI-PLATFORM CAMPAIGN</span>
+            <h4>Truyền Thông Đa Kênh Cộng Hưởng</h4>
+            <p>Hợp lực truyền thông giữa Ban Tổ Chức × Nghệ Sĩ × Nhãn Hàng để tối ưu độ phủ và uy tín.</p>
+          </div>
+          <div class="h-cell">
+            <img class="holo" src="assets/holo-vip.webp" alt="" loading="lazy" />
+            <span class="h-num">04 // VIP CRM &amp; LOYALTY</span>
+            <h4>Giữ Chân Khách Hàng Trọng Yếu</h4>
+            <p>Cổng đón riêng, khu vực định danh &amp; quà tặng VIP gia tăng tối đa mức độ gắn kết.</p>
+          </div>
+        </div>
+
+        <!-- Direct Contact Box -->
+        <div style="border: 1px solid var(--accent); background: rgba(232, 201, 155, 0.07); padding: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px;">
+          <div>
+            <div style="font-family: var(--mono); font-size: 10px; color: var(--accent); letter-spacing: 0.14em;">
+              LIÊN HỆ ĐẶT SHOW &amp; TƯ VẤN CONCEPT RIÊNG
+            </div>
+            <div style="font-size: 18px; font-weight: 500; margin-top: 4px;">
+              Ms. Cung Cẩm Tú — 0902.088.246
+            </div>
+            <div style="font-size: 12.5px; color: var(--text-dim);">
+              Email: ptkd.thienhabaola@gmail.com • @thienhabaola
+            </div>
+          </div>
+          <div style="display: flex; gap: 8px;">
+            <a href="tel:0902088246" class="tactile-btn active">GỌI TRỰC TIẾP →</a>
+            <a href="mailto:ptkd.thienhabaola@gmail.com" class="tactile-btn">GỬI EMAIL →</a>
+          </div>
+        </div>
+
+        <div class="pane-nav-footer">
+          <button class="tactile-btn" onclick="enterGalaxy(3)">← THIÊN HÀ 04</button>
+          <button class="tactile-btn active" onclick="returnToUniverse()">← QUAY LẠI TOÀN CẢNH 5 THIÊN HÀ</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- THREE.JS -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script>
+    // ============================================================================
+    // 0. PRELOADER
+    // ============================================================================
+    (function initPreloader() {
+      const pre = document.getElementById('preloader');
+      const num = document.getElementById('preNum');
+      const fill = document.getElementById('preFill');
+      const pct = document.getElementById('prePct');
+      const steps = [18, 42, 68, 89, 96, 100];
+      let idx = 0;
+      function tick() {
+        const v = steps[idx];
+        num.textContent = v;
+        fill.style.width = v + '%';
+        pct.textContent = v + '%';
+        if (v === 100) {
+          setTimeout(() => pre.classList.add('done'), 220);
+          return;
+        }
+        idx++;
+        setTimeout(tick, 95);
+      }
+      setTimeout(tick, 70);
+    })();
+
+    // ============================================================================
+    // 1. SYNTHESIZED AUDIO (Detent Click + Warp Whoosh + Harmonic Chime)
+    // ============================================================================
+    let soundOn = false;
+    let actx = null;
+    const soundBtn = document.getElementById('soundBtn');
+    const soundTxt = document.getElementById('soundTxt');
+
+    function ensureAudio() {
+      if (!actx) actx = new (window.AudioContext || window.webkitAudioContext)();
+      if (actx.state === 'suspended') actx.resume();
+    }
+
+    function playClick(freq = 190) {
+      if (!soundOn) return;
+      ensureAudio();
+      const now = actx.currentTime;
+      const osc = actx.createOscillator();
+      const gain = actx.createGain();
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(freq, now);
+      osc.frequency.exponentialRampToValueAtTime(45, now + 0.045);
+      gain.gain.setValueAtTime(0.16, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.045);
+      osc.connect(gain);
+      gain.connect(actx.destination);
+      osc.start(now);
+      osc.stop(now + 0.05);
+    }
+
+    function playWarpSound(entering = true) {
+      if (!soundOn) return;
+      ensureAudio();
+      const now = actx.currentTime;
+      const osc = actx.createOscillator();
+      const gain = actx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(entering ? 140 : 420, now);
+      osc.frequency.exponentialRampToValueAtTime(entering ? 520 : 130, now + 0.55);
+      gain.gain.setValueAtTime(0.09, now);
+      gain.gain.exponentialRampToValueAtTime(0.0008, now + 0.6);
+      osc.connect(gain);
+      gain.connect(actx.destination);
+      osc.start(now);
+      osc.stop(now + 0.6);
+    }
+
+    soundBtn.addEventListener('click', () => {
+      soundOn = !soundOn;
+      soundBtn.classList.toggle('active', soundOn);
+      soundTxt.textContent = soundOn ? 'SOUND: ON' : 'SOUND: OFF';
+      if (soundOn) playClick(280);
+    });
+
+    // ============================================================================
+    // 2. 5-GALAXY 3D UNIVERSE ENGINE (Three.js)
+    // ============================================================================
+    const canvas = document.getElementById('webgl');
+    const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true, powerPreference: 'high-performance' });
+    const pixelRatio = Math.min(window.devicePixelRatio, 1.5);
+    renderer.setPixelRatio(pixelRatio);
+    renderer.setSize(window.innerWidth, window.innerHeight);
+
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 200);
+
+    // Universe Group holds all 5 galaxies + constellation filaments
+    const universeGroup = new THREE.Group();
+    scene.add(universeGroup);
+
+    // Soft glow particle sprite
+    function createGlowSprite() {
+      const c = document.createElement('canvas');
+      c.width = 64;
+      c.height = 64;
+      const ctx = c.getContext('2d');
+      const g = ctx.createRadialGradient(32, 32, 0, 32, 32, 32);
+      g.addColorStop(0, 'rgba(255,255,255,1)');
+      g.addColorStop(0.25, 'rgba(255,245,255,0.85)');
+      g.addColorStop(0.65, 'rgba(180,140,255,0.22)');
+      g.addColorStop(1, 'rgba(0,0,0,0)');
+      ctx.fillStyle = g;
+      ctx.fillRect(0, 0, 64, 64);
+      return new THREE.CanvasTexture(c);
+    }
+    const starTex = createGlowSprite();
+
+    const LIGHT_BLEND = { blending: THREE.AdditiveBlending }; // chỉ dùng cho hạt sáng
+
+    // Metadata & 3D coordinates for the 5 Galaxies
+    const GALAXY_DEFS = [
+      {
+        id: 0,
+        code: 'THIÊN HÀ 01 // ALPHA',
+        title: 'Bối Cảnh & Định Vị',
+        desc: 'Khám phá triết lý “Mỗi đêm diễn là một hành tinh độc bản” — chuyển dịch từ thưởng thức 2D sang trải nghiệm nhập vai.',
+        pos: new THREE.Vector3(-5.2, 2.1, -1.2),
+        rot: new THREE.Euler(0.45, 0.2, -0.3),
+        coreColor: '#ffe5b4',
+        midColor: '#e8c99b',
+        rimColor: '#9d4edd',
+        arms: 4
+      },
+      {
+        id: 1,
+        code: 'THIÊN HÀ 02 // BETA',
+        title: 'Mô Hình Show & Vận Hành',
+        desc: 'Mô hình Buy-Out Show: Doanh nghiệp sở hữu riêng một nhà hát độc bản với quy trình 5 bước trọn gói.',
+        pos: new THREE.Vector3(5.2, 2.3, -1.8),
+        rot: new THREE.Euler(-0.35, -0.25, 0.2),
+        coreColor: '#e0fbfc',
+        midColor: '#64dfdf',
+        rimColor: '#3a0ca3',
+        arms: 3
+      },
+      {
+        id: 2,
+        code: 'THIÊN HÀ 03 // DOME 360°',
+        title: 'Không Gian Vòm DOME 360° & 3 Layout',
+        desc: 'Tâm điểm vũ trụ: Vòm cầu đường kính 35m × cao 17.5m, 8 cổng đón khách độc lập và 3 cấu hình 848 – 1.700 khách.',
+        pos: new THREE.Vector3(0, 0.1, 1.4),
+        rot: new THREE.Euler(0.52, 0, 0),
+        coreColor: '#ffffff',
+        midColor: '#c77dff',
+        rimColor: '#3c096c',
+        arms: 5
+      },
+      {
+        id: 3,
+        code: 'THIÊN HÀ 04 // DELTA',
+        title: 'Trải Nghiệm Khán Giả & Đại Sứ DOMI',
+        desc: 'Đồng hành cùng sinh vật vũ trụ DOMI qua 3 chặng Before — In — Beyond The Show và bộ Merch custom độc quyền.',
+        pos: new THREE.Vector3(-5.3, -1.25, 0.2),
+        rot: new THREE.Euler(0.38, 0.3, 0.25),
+        coreColor: '#ffd6ff',
+        midColor: '#ff47b6',
+        rimColor: '#5a189a',
+        arms: 4
+      },
+      {
+        id: 4,
+        code: 'THIÊN HÀ 05 // OMEGA',
+        title: 'Chiến Lược Marketing, CSKH & Liên Hệ',
+        desc: '5 giải pháp sự kiện doanh nghiệp và 5 đòn bẩy thương mại kích cầu doanh số & nâng tầm thương hiệu.',
+        pos: new THREE.Vector3(4.6, -2.3, 0.4),
+        rot: new THREE.Euler(-0.42, 0.15, -0.28),
+        coreColor: '#fff3b0',
+        midColor: '#fbbf24',
+        rimColor: '#7209b7',
+        arms: 4
+      }
+    ];
+
+    const galaxyMeshes = [];
+    const systems = []; // mỗi thiên hà: { system (vị trí), tilt (nhóm xoay bằng chuột), planet, fx }
+    const PTS_PER_GALAXY = 2400;
+
+    GALAXY_DEFS.forEach((def, idx) => {
+      const geo = new THREE.BufferGeometry();
+      const positions = new Float32Array(PTS_PER_GALAXY * 3);
+      const colors = new Float32Array(PTS_PER_GALAXY * 3);
+
+      const cCore = new THREE.Color(def.coreColor);
+      const cMid = new THREE.Color(def.midColor);
+      const cRim = new THREE.Color(def.rimColor);
+      const maxR = idx === 2 ? 2.45 : 1.95; // Center galaxy (DOME 360) is slightly larger
+
+      for (let i = 0; i < PTS_PER_GALAXY; i++) {
+        const i3 = i * 3;
+        const t = i / PTS_PER_GALAXY;
+
+        if (idx === 2 && i > PTS_PER_GALAXY * 0.72) {
+          // For Galaxy 03 (DOME 360), add a geodesic dome crown above the spiral disc!
+          const dPhi = Math.acos(1 - ((i - PTS_PER_GALAXY * 0.72) / (PTS_PER_GALAXY * 0.28)));
+          const dTheta = i * 2.39996;
+          const dR = 1.45;
+          positions[i3] = dR * Math.sin(dPhi) * Math.cos(dTheta);
+          positions[i3 + 1] = dR * Math.cos(dPhi) * 0.85;
+          positions[i3 + 2] = dR * Math.sin(dPhi) * Math.sin(dTheta);
+        } else {
+          // Logarithmic spiral arms
+          const arm = i % def.arms;
+          const r = Math.pow(Math.random(), 0.78) * maxR;
+          const spin = r * 2.9;
+          const branch = (arm / def.arms) * Math.PI * 2;
+          const spread = (1 - r / (maxR * 1.15)) * 0.26 + 0.04;
+          positions[i3] = Math.cos(branch + spin) * r + (Math.random() - 0.5) * spread * 2;
+          positions[i3 + 1] = (Math.random() - 0.5) * (0.12 + r * 0.05);
+          positions[i3 + 2] = Math.sin(branch + spin) * r + (Math.random() - 0.5) * spread * 2;
+        }
+
+        const c = new THREE.Color();
+        const distRatio = Math.min(1, Math.hypot(positions[i3], positions[i3 + 2]) / maxR);
+        if (distRatio < 0.28) c.lerpColors(cCore, cMid, distRatio / 0.28);
+        else c.lerpColors(cMid, cRim, (distRatio - 0.28) / 0.72);
+
+        colors[i3] = c.r;
+        colors[i3 + 1] = c.g;
+        colors[i3 + 2] = c.b;
+      }
+
+      geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+      geo.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+
+      const mat = new THREE.PointsMaterial({
+        size: 0.042,
+        map: starTex,
+        vertexColors: true,
+        transparent: true,
+        opacity: 0.75,
+        depthWrite: false,
+        ...LIGHT_BLEND
+      });
+
+      const points = new THREE.Points(geo, mat);
+      points.rotation.copy(def.rot);
+      points.userData = { galaxyId: idx };
+      const system = new THREE.Group();
+      system.position.copy(def.pos);
+      const tilt = new THREE.Group();
+      tilt.add(points);
+      system.add(tilt);
+      universeGroup.add(system);
+      galaxyMeshes.push(points);
+      systems.push({ system, tilt });
+    });
+
+    // ============================================================================
+    // 2b. HÀNH TINH 3D THẬT (thay ảnh 2D) — khối cầu shader + phụ kiện 3D riêng cho từng thiên hà
+    // ============================================================================
+    const NOISE_GLSL = `
+      vec3 mod289(vec3 x){return x-floor(x*(1.0/289.0))*289.0;}
+      vec4 mod289(vec4 x){return x-floor(x*(1.0/289.0))*289.0;}
+      vec4 permute(vec4 x){return mod289(((x*34.0)+1.0)*x);}
+      vec4 taylorInvSqrt(vec4 r){return 1.79284291400159-0.85373472095314*r;}
+      float snoise(vec3 v){
+        const vec2 C=vec2(1.0/6.0,1.0/3.0); const vec4 D=vec4(0.0,0.5,1.0,2.0);
+        vec3 i=floor(v+dot(v,C.yyy)); vec3 x0=v-i+dot(i,C.xxx);
+        vec3 g=step(x0.yzx,x0.xyz); vec3 l=1.0-g; vec3 i1=min(g.xyz,l.zxy); vec3 i2=max(g.xyz,l.zxy);
+        vec3 x1=x0-i1+C.xxx; vec3 x2=x0-i2+C.yyy; vec3 x3=x0-D.yyy;
+        i=mod289(i);
+        vec4 p=permute(permute(permute(i.z+vec4(0.0,i1.z,i2.z,1.0))+i.y+vec4(0.0,i1.y,i2.y,1.0))+i.x+vec4(0.0,i1.x,i2.x,1.0));
+        float n_=0.142857142857; vec3 ns=n_*D.wyz-D.xzx;
+        vec4 j=p-49.0*floor(p*ns.z*ns.z); vec4 x_=floor(j*ns.z); vec4 y_=floor(j-7.0*x_);
+        vec4 x=x_*ns.x+ns.yyyy; vec4 y=y_*ns.x+ns.yyyy; vec4 h=1.0-abs(x)-abs(y);
+        vec4 b0=vec4(x.xy,y.xy); vec4 b1=vec4(x.zw,y.zw);
+        vec4 s0=floor(b0)*2.0+1.0; vec4 s1=floor(b1)*2.0+1.0; vec4 sh=-step(h,vec4(0.0));
+        vec4 a0=b0.xzyw+s0.xzyw*sh.xxyy; vec4 a1=b1.xzyw+s1.xzyw*sh.zzww;
+        vec3 p0=vec3(a0.xy,h.x); vec3 p1=vec3(a0.zw,h.y); vec3 p2=vec3(a1.xy,h.z); vec3 p3=vec3(a1.zw,h.w);
+        vec4 norm=taylorInvSqrt(vec4(dot(p0,p0),dot(p1,p1),dot(p2,p2),dot(p3,p3)));
+        p0*=norm.x; p1*=norm.y; p2*=norm.z; p3*=norm.w;
+        vec4 m=max(0.6-vec4(dot(x0,x0),dot(x1,x1),dot(x2,x2),dot(x3,x3)),0.0); m=m*m;
+        return 42.0*dot(m*m,vec4(dot(p0,x0),dot(p1,x1),dot(p2,x2),dot(p3,x3)));
+      }
+      float fbm(vec3 p){ float a=0.53, s=0.0; for(int i=0;i<3;i++){ s+=a*snoise(p); p*=2.05; a*=0.5; } return s; }
+    `;
+
+    const PLANET_VERT = `
+      uniform float uDisp, uScale;
+      varying vec3 vObj; varying vec3 vWorld; varying vec3 vN;
+      void main(){
+        vec3 dir = normalize(position);
+        float h = uDisp > 0.025 ? fbm(dir * uScale) : snoise(dir * uScale);
+        vec3 p = position + dir * h * uDisp;   // địa hình nổi khối tối ưu GPU
+        vObj = dir;
+        vec4 w = modelMatrix * vec4(p, 1.0);
+        vWorld = w.xyz;
+        vN = normalize(mat3(modelMatrix) * dir);
+        gl_Position = projectionMatrix * viewMatrix * w;
+      }
+    `;
+    const PLANET_FRAG = `
+      uniform vec3 uColA, uColB, uColC, uAtm;
+      uniform float uTime, uScale, uBands, uCracks, uSwirl, uFacet, uSpark;
+      // Venom: uMode +1 = hành tinh mới (chỉ hiện phần đã bị phủ), -1 = hành tinh cũ (chỉ hiện phần chưa bị phủ), 0 = bình thường
+      uniform float uMode, uLevel, uDir; uniform vec3 uCenter, uSeam;
+      varying vec3 vObj; varying vec3 vWorld; varying vec3 vN;
+      void main(){
+        vec3 nG = normalize(cross(dFdx(vWorld), dFdy(vWorld)));
+        float seam = 0.0;
+        if (uMode != 0.0) {
+          // Dùng HƯỚNG từ tâm chung (không dùng khoảng cách) để 2 mặt nạ khớp tuyệt đối dù 2 khối khác bán kính
+          vec3 rel = normalize(vWorld - uCenter);
+          float edge = rel.y * uDir
+            + snoise(rel * 1.8 + vec3(0.0, uTime * 0.35, 0.0)) * 0.14
+            + sin(atan(rel.z, rel.x) * 4.0 + uTime * 1.5) * 0.05;   // mép lượn sóng mượt
+          float d = uLevel - edge;                                   // > 0: Venom đã phủ tới
+          if (uMode * d < 0.0) discard;
+          seam = exp(-abs(d) * 38.0);                                // viền neon mảnh
+        }
+        vec3 p = normalize(vObj);
+        float w = snoise(p * 1.6 + vec3(0.0, uTime * 0.04, 0.0));
+        float ang = uSwirl * (w * 1.4 + p.y * 3.0 + uTime * 0.03);          // xoáy theo vĩ độ
+        float c = cos(ang), s = sin(ang);
+        vec3 q = vec3(c * p.x - s * p.z, p.y, s * p.x + c * p.z);
+        float n = fbm(q * uScale * 1.3) * 0.5 + 0.5;
+        float bands = sin((q.y + (n - 0.5) * 0.18) * 22.0) * 0.5 + 0.5;
+        bands = mix(bands, sin(q.y * 7.0 + n * 3.0) * 0.5 + 0.5, 0.35);
+        float t = mix(n, bands, uBands);
+        vec3 col = mix(uColA, uColB, smoothstep(0.12, 0.92, t));
+        float crack = pow(1.0 - abs(snoise(q * uScale * 1.6)), 12.0) * uCracks;  // rãnh nham thạch
+        float streak = pow(max(0.0, sin((q.y * 5.0 + n * 4.0) * 3.14159)), 18.0) * uSwirl;
+        vec3 N = normalize(mix(normalize(vN), nG, uFacet));
+        vec3 L = normalize(vec3(0.6, 0.45, 0.65));
+        vec3 V = normalize(cameraPosition - vWorld);
+        float diff = max(dot(N, L), 0.0);
+        float wrap = dot(normalize(vN), L) * 0.5 + 0.5;
+        float fres = pow(1.0 - max(dot(normalize(vN), V), 0.0), 2.5);
+        vec3 lit = col * (0.10 + 1.1 * diff);
+        lit += uColC * (crack * 1.6 * (0.75 + 0.25 * sin(uTime * 1.8 + p.x * 6.0)) + streak * 0.9);
+        lit += uColC * pow(max(dot(reflect(-L, N), V), 0.0), mix(18.0, 60.0, uFacet)) * uSpark * 0.9;
+        lit += uAtm * fres * (0.25 + 0.9 * wrap);
+        lit += uSeam * seam * 1.8;
+        gl_FragColor = vec4(lit, 1.0);
+      }
+    `;
+    const ATM_VERT = `
+      varying vec3 vN; varying vec3 vV;
+      void main(){ vec4 mv = modelViewMatrix * vec4(position, 1.0); vN = normalize(normalMatrix * normal); vV = normalize(-mv.xyz); gl_Position = projectionMatrix * mv; }
+    `;
+    const ATM_FRAG = `
+      uniform vec3 uAtm; uniform float uStrength; varying vec3 vN; varying vec3 vV;
+      void main(){ float k = clamp(-dot(vN, vV), 0.0, 1.0); float i = pow(k, 2.2) * 1.5 * uStrength; gl_FragColor = vec4(uAtm * i, i); }
+    `;
+    const RING_VERT = `varying vec2 vP; void main(){ vP = position.xy; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }`;
+    const DISC_FRAG = `
+      uniform float uTime, uIn, uOut; uniform vec3 uColA, uColB; varying vec2 vP;
+      void main(){
+        float r = length(vP), a = atan(vP.y, vP.x);
+        float t = clamp((r - uIn) / (uOut - uIn), 0.0, 1.0);
+        float arms = sin(a * 2.0 - log(r) * 9.0 + uTime * 0.9) * 0.5 + 0.5;
+        float grain = snoise(vec3(vP * 7.0, uTime * 0.15)) * 0.5 + 0.5;
+        float i = smoothstep(0.0, 0.08, t) * pow(1.0 - t, 1.6) * (0.35 + 0.45 * arms + 0.35 * grain);
+        gl_FragColor = vec4(mix(uColB, uColA, pow(t, 0.6)) * i * 1.5, i);
+      }
+    `;
+    const SATURN_FRAG = `
+      uniform float uIn, uOut; uniform vec3 uColA, uColB; varying vec2 vP;
+      void main(){
+        float t = clamp((length(vP) - uIn) / (uOut - uIn), 0.0, 1.0);
+        float b = 0.55 + 0.22 * sin(t * 140.0) + 0.18 * sin(t * 53.0 + 1.3) + 0.12 * sin(t * 23.0);
+        float cassini = 1.0 - 0.9 * smoothstep(0.55, 0.57, t) * (1.0 - smoothstep(0.62, 0.64, t));
+        float edge = smoothstep(0.0, 0.04, t) * (1.0 - smoothstep(0.93, 1.0, t));
+        gl_FragColor = vec4(mix(uColA, uColB, 0.5 + 0.5 * sin(t * 31.0)), clamp(b, 0.0, 1.0) * cassini * edge * 0.85);
+      }
+    `;
+
+    // "DNA bề mặt" của 5 hành tinh. r: bán kính, view: khoảng cách camera khi bay vào, detail: độ mịn lưới (12 = 3.380 đỉnh/hành tinh, tròn mịn & nhẹ hơn 15 lần so với 28)
+    const PLANETS = [
+      { r: 0.60, view: 3.7, detail: 12, colA: '#4a2a12', colB: '#e8c99b', colC: '#b06cff', atm: '#ffcf8a', disp: 0.05,  scale: 2.4, bands: 0.0,  cracks: 1.0,  swirl: 0.0,  facet: 0.35, spark: 0.2 },
+      { r: 0.55, view: 4.2, detail: 12, colA: '#030a18', colB: '#1b5f86', colC: '#7af5f5', atm: '#64dfdf', disp: 0.01,  scale: 1.8, bands: 0.45, cracks: 0.0,  swirl: 1.0,  facet: 0.0,  spark: 0.5 },
+      { r: 0.62, view: 3.9, detail: 12, colA: '#240640', colB: '#c77dff', colC: '#ffd6ff', atm: '#c77dff', disp: 0.012, scale: 2.0, bands: 0.65, cracks: 0.25, swirl: 0.35, facet: 0.0,  spark: 0.3 },
+      { r: 0.56, view: 4.0, detail: 5,  colA: '#3a0f4f', colB: '#ff47b6', colC: '#ffe3ff', atm: '#ff8ad8', disp: 0.07,  scale: 3.2, bands: 0.0,  cracks: 0.0,  swirl: 0.0,  facet: 1.0,  spark: 1.0 },
+      { r: 0.58, view: 4.6, detail: 12, colA: '#5a3405', colB: '#fbbf24', colC: '#fff3b0', atm: '#ffd166', disp: 0.008, scale: 1.6, bands: 1.0,  cracks: 0.0,  swirl: 0.25, facet: 0.0,  spark: 0.25 }
+    ];
+
+    const timedMats = [];    // material có uTime
+    const planetMeshes = []; // để raycast click
+    const spinners = [];     // [object, trục, tốc độ] — phụ kiện tự quay
+    const ADD = { transparent: true, depthWrite: false, blending: THREE.AdditiveBlending };
+    const col = (c) => ({ value: new THREE.Color(c) });
+
+    function glowRing(radius, color, opacity, tube = 0.005) {
+      return new THREE.Mesh(new THREE.TorusGeometry(radius, tube, 6, 180), new THREE.MeshBasicMaterial({ color, opacity, ...ADD }));
+    }
+    function glowDot(size, color) {
+      const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: starTex, color, ...ADD }));
+      s.scale.set(size, size, 1);
+      return s;
+    }
+    function glowPoints(arr, size, color) {
+      const g = new THREE.BufferGeometry();
+      g.setAttribute('position', new THREE.Float32BufferAttribute(arr, 3));
+      return new THREE.Points(g, new THREE.PointsMaterial({ size, map: starTex, color, ...ADD }));
+    }
+
+    const ATTACH = [
+      // 01 ALPHA — vòng la bàn quỹ đạo đôi + vạch chia độ + mặt trăng nhỏ
+      (g, R) => {
+        const dial = new THREE.Group();
+        dial.rotation.set(Math.PI / 2 + 0.35, 0.2, 0);
+        dial.add(glowRing(R * 1.55, 0xe8c99b, 0.8));
+        const ticks = [];
+        for (let i = 0; i < 72; i++) {
+          const a = (i / 72) * Math.PI * 2, rr = R * (i % 6 ? 1.6 : 1.67);
+          ticks.push(Math.cos(a) * rr, Math.sin(a) * rr, 0);
+        }
+        dial.add(glowPoints(ticks, 0.03, 0xffe5b4));
+        const moon = new THREE.Mesh(new THREE.SphereGeometry(R * 0.09, 24, 16), new THREE.MeshBasicMaterial({ color: 0xffe5b4 }));
+        moon.position.set(R * 1.55, 0, 0);
+        moon.add(glowDot(R * 0.5, 0xffcf8a));
+        dial.add(moon);
+        const outer = new THREE.Group();
+        outer.rotation.set(Math.PI / 2 - 0.55, -0.5, 0.3);
+        outer.add(glowRing(R * 1.8, 0x9d4edd, 0.65, 0.004));
+        spinners.push([dial, 'z', 0.004], [outer, 'z', -0.0025]);
+        g.add(dial, outer);
+      },
+      // 02 BETA — lõi tối + đĩa bồi tụ xoáy + vòng photon sáng
+      (g, R) => {
+        const m = new THREE.ShaderMaterial({
+          uniforms: { uTime: { value: 0 }, uIn: { value: R * 1.2 }, uOut: { value: R * 2.15 }, uColA: col('#3a0ca3'), uColB: col('#bdfcff') },
+          vertexShader: RING_VERT, fragmentShader: NOISE_GLSL + DISC_FRAG, side: THREE.DoubleSide, ...ADD
+        });
+        timedMats.push(m);
+        const disc = new THREE.Mesh(new THREE.RingGeometry(R * 1.2, R * 2.15, 160, 1), m);
+        const photon = glowRing(R * 1.08, 0x9ffcff, 0.9, 0.006);
+        disc.rotation.x = photon.rotation.x = -Math.PI / 2 + 0.38;
+        g.add(disc, photon);
+      },
+      // 03 DOME 360° — lưới vòm cầu geodesic + vành chân vòm với 8 cổng sáng
+      (g, R) => {
+        const cage = new THREE.Group();
+        const ico = new THREE.IcosahedronGeometry(R * 1.42, 2);
+        cage.add(new THREE.LineSegments(new THREE.WireframeGeometry(ico), new THREE.LineBasicMaterial({ color: 0xc77dff, opacity: 0.5, ...ADD })));
+        const pa = ico.attributes.position, seen = new Set(), nodes = [];
+        for (let i = 0; i < pa.count; i++) {
+          const k = `${pa.getX(i).toFixed(3)},${pa.getY(i).toFixed(3)},${pa.getZ(i).toFixed(3)}`;
+          if (!seen.has(k)) { seen.add(k); nodes.push(pa.getX(i), pa.getY(i), pa.getZ(i)); }
+        }
+        cage.add(glowPoints(nodes, 0.045, 0xffd6ff));
+        const base = glowRing(R * 1.42, 0xff9bf0, 0.85, 0.006);
+        base.rotation.x = Math.PI / 2;
+        for (let i = 0; i < 8; i++) {
+          const a = (i / 8) * Math.PI * 2, d = glowDot(R * 0.32, 0xffd6ff);
+          d.position.set(Math.cos(a) * R * 1.42, Math.sin(a) * R * 1.42, 0);
+          base.add(d);
+        }
+        spinners.push([cage, 'y', 0.0015]);
+        g.add(cage, base);
+      },
+      // 04 DELTA — vệ tinh ánh sáng chạy trên các quỹ đạo nghiêng
+      (g, R) => {
+        for (let i = 0; i < 6; i++) {
+          const orbit = new THREE.Group();
+          orbit.rotation.set(Math.PI / 2 + Math.sin(i * 2.1) * 0.6, i * 0.9, i * 1.3);
+          const rr = R * (1.35 + i * 0.12);
+          orbit.add(glowRing(rr, 0xff8ad8, 0.16, 0.003));
+          const sat = new THREE.Mesh(new THREE.SphereGeometry(R * (0.035 + (i % 3) * 0.012), 12, 8), new THREE.MeshBasicMaterial({ color: 0xffe3ff }));
+          sat.position.set(rr, 0, 0);
+          sat.add(glowDot(R * 0.38, 0xff47b6));
+          orbit.add(sat);
+          spinners.push([orbit, 'z', (0.004 + i * 0.0011) * (i % 2 ? -1 : 1)]);
+          g.add(orbit);
+        }
+      },
+      // 05 OMEGA — hệ vành đai kiểu Sao Thổ (có khe Cassini), nghiêng cả hệ
+      (g, R, host) => {
+        const rings = new THREE.Mesh(new THREE.RingGeometry(R * 1.3, R * 2.4, 220, 1), new THREE.ShaderMaterial({
+          uniforms: { uIn: { value: R * 1.3 }, uOut: { value: R * 2.4 }, uColA: col('#8a5a12'), uColB: col('#fff3b0') },
+          vertexShader: RING_VERT, fragmentShader: SATURN_FRAG, side: THREE.DoubleSide, transparent: true, depthWrite: false
+        }));
+        rings.rotation.x = -Math.PI / 2 + 0.42;
+        g.add(rings);
+        host.rotation.z = 0.28; // nghiêng cả hành tinh lẫn vành đai
+      }
+    ];
+
+    // Icon tối giản bay cạnh hành tinh (người dùng chọn 1A, 2A, 3A, 5A; thiên hà 04 đã có DOMI)
+    const COMPANIONS = [
+      ['#e8c99b', '<rect x="24" y="8" width="16" height="26" rx="8"/><path d="M17 28a15 15 0 0 0 30 0"/><path d="M32 43v11M24 54h16"/>'],
+      ['#64dfdf', '<circle cx="32" cy="23" r="13"/><circle cx="24" cy="37" r="13"/><circle cx="40" cy="37" r="13"/>'],
+      ['#c77dff', '<path d="M8 46a24 24 0 0 1 48 0"/><path d="M22 46a10 24 0 0 1 20 0"/><path d="M32 22v24"/><path d="M11.2 34h41.6"/><path d="M4 46h56"/>'],
+      null,
+      ['#fbbf24', '<rect x="14" y="28" width="36" height="24" rx="1.5"/><rect x="11" y="20" width="42" height="8" rx="1.5"/><path d="M32 20v32"/><path d="M32 20c-5-9-15-7-11 0M32 20c5-9 15-7 11 0"/>']
+    ];
+    const bobbers = []; // [sprite, y gốc] — lơ lửng nhẹ
+    function companionSprite([color, paths], R) {
+      const c = document.createElement('canvas');
+      c.width = c.height = 256;
+      const tex = new THREE.CanvasTexture(c);
+      const img = new Image();
+      img.onload = () => {
+        const ctx = c.getContext('2d');
+        ctx.shadowColor = color;
+        ctx.shadowBlur = 18;
+        ctx.drawImage(img, 32, 32, 192, 192);
+        ctx.drawImage(img, 32, 32, 192, 192); // vẽ 2 lớp cho quầng sáng đậm hơn
+        tex.needsUpdate = true;
+      };
+      img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(
+        `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="192" height="192" fill="none" stroke="${color}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${paths}</svg>`);
+      const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, ...ADD }));
+      sp.scale.setScalar(R * 0.75);
+      sp.position.set(-R * 1.55, R * 1.2, R * 0.4); // phía trên bên trái: không đụng bảng chi tiết bên phải
+      bobbers.push([sp, sp.position.y]);
+      return sp;
+    }
+
+    systems.forEach((sys, idx) => {
+      const P = PLANETS[idx];
+      const mat = new THREE.ShaderMaterial({
+        uniforms: {
+          uTime: { value: 0 }, uColA: col(P.colA), uColB: col(P.colB), uColC: col(P.colC), uAtm: col(P.atm),
+          uDisp: { value: P.disp }, uScale: { value: P.scale }, uBands: { value: P.bands }, uCracks: { value: P.cracks },
+          uSwirl: { value: P.swirl }, uFacet: { value: P.facet }, uSpark: { value: P.spark },
+          uMode: { value: 0 }, uLevel: { value: 0 }, uDir: { value: 1 },
+          uCenter: { value: new THREE.Vector3() }, uSeam: col(P.colC)
+        },
+        vertexShader: NOISE_GLSL + PLANET_VERT,
+        fragmentShader: NOISE_GLSL + PLANET_FRAG,
+        extensions: { derivatives: true }
+      });
+      timedMats.push(mat);
+      const g = new THREE.Group();
+      const planet = new THREE.Mesh(new THREE.IcosahedronGeometry(P.r, P.detail), mat);
+      planet.userData = { galaxyId: idx };
+      const atm = new THREE.Mesh(new THREE.SphereGeometry(P.r * 1.2, 48, 32), new THREE.ShaderMaterial({
+        uniforms: { uAtm: col(P.atm), uStrength: { value: 1 } }, vertexShader: ATM_VERT, fragmentShader: ATM_FRAG, side: THREE.BackSide, ...ADD
+      }));
+      const acc = new THREE.Group(); // phụ kiện 3D: co lại / bung nở theo nhịp Venom
+      g.add(planet, atm, acc);
+      ATTACH[idx](acc, P.r, g);
+      if (COMPANIONS[idx]) acc.add(companionSprite(COMPANIONS[idx], P.r)); // nằm trong acc: co/nở theo Venom
+      sys.tilt.add(g);
+      Object.assign(sys, { group: g, planet, atm, acc });
+      sys.fx = [];
+      g.traverse((o) => { if (o.material && o.material.transparent) sys.fx.push(o); });
+      planetMeshes.push(planet);
+    });
+
+    // ---- ART LAYERS: tinh vân nền (giữ lại) + DOMI. Hành tinh 2D cũ đã được thay bằng khối 3D ở trên ----
+    const texLoader = new THREE.TextureLoader();
+    const texCache = {};
+    function tex(name) {
+      if (!texCache[name]) texCache[name] = texLoader.load(`assets/${name}.webp`);
+      return texCache[name];
+    }
+    // [file, width, aspect(h/w), offset xyz, additive, opacity]
+    const GALAXY_ART = [
+      [['nebula-violet', 5.2, 0.95, [0, 0, -0.6], true, 0.55]],
+      [['nebula-cyan', 5.0, 0.91, [0, 0, -0.6], true, 0.6]],
+      [['nebula-magenta', 6.4, 1, [0, 0.2, -0.8], true, 0.5]],
+      [['nebula-violet', 5.0, 0.95, [0, 0, -0.6], true, 0.45], ['domi', 0.55, 1.28, [0.95, 0.55, 0.4], false, 1]],
+      [['nebula-cyan', 5.0, 0.91, [0, 0, -0.6], true, 0.45]]
+    ];
+    const artGroups = GALAXY_DEFS.map((def, idx) => {
+      const g = new THREE.Group();
+      g.position.copy(def.pos);
+      GALAXY_ART[idx].forEach(([file, w, aspect, off, additive, op], li) => {
+        const m = new THREE.SpriteMaterial({
+          map: tex(file),
+          transparent: true,
+          opacity: op,
+          depthWrite: false,
+          blending: additive ? THREE.AdditiveBlending : THREE.NormalBlending
+        });
+        const sp = new THREE.Sprite(m);
+        sp.scale.set(w, w * aspect, 1);
+        sp.position.set(...off);
+        sp.userData = { baseScale: sp.scale.clone(), baseOp: op, layer: li, galaxyId: idx, file, baseY: off[1] };
+        g.add(sp);
+      });
+      universeGroup.add(g);
+      return g;
+    });
+    let hoveredGalaxy = null;
+
+    // Subtle constellation lines connecting the 5 galaxies
+    const lineGeo = new THREE.BufferGeometry().setFromPoints([
+      GALAXY_DEFS[0].pos, GALAXY_DEFS[2].pos,
+      GALAXY_DEFS[1].pos, GALAXY_DEFS[2].pos,
+      GALAXY_DEFS[3].pos, GALAXY_DEFS[2].pos,
+      GALAXY_DEFS[4].pos, GALAXY_DEFS[2].pos,
+      GALAXY_DEFS[0].pos, GALAXY_DEFS[1].pos,
+      GALAXY_DEFS[3].pos, GALAXY_DEFS[4].pos
+    ]);
+    const lineMat = new THREE.LineBasicMaterial({
+      color: 0xe8c99b,
+      transparent: true,
+      opacity: 0.12,
+      depthWrite: false // không ghi depth, tránh khoét vệt tối lên vành đai / tinh vân
+    });
+    const constellationLines = new THREE.LineSegments(lineGeo, lineMat);
+    universeGroup.add(constellationLines);
+
+    // Deep background starfield (2,500 ambient stars)
+    const bgGeo = new THREE.BufferGeometry();
+    const bgPos = new Float32Array(2500 * 3);
+    for (let i = 0; i < 2500 * 3; i++) {
+      bgPos[i] = (Math.random() - 0.5) * 45;
+    }
+    bgGeo.setAttribute('position', new THREE.BufferAttribute(bgPos, 3));
+    const bgMat = new THREE.PointsMaterial({
+      size: 0.04,
+      map: starTex,
+      color: 0xd8d4f2,
+      transparent: true,
+      opacity: 0.42,
+      depthWrite: false,
+      ...LIGHT_BLEND
+    });
+    const bgStars = new THREE.Points(bgGeo, bgMat);
+    scene.add(bgStars);
+
+    // ============================================================================
+    // 3. CAMERA FLY-IN / WARP CONTROLLER & ORBIT DRAG
+    // ============================================================================
+    let currentGalaxy = null; // null = Overview of all 5 galaxies; 0..4 = Inside galaxy
+    const camTargetPos = new THREE.Vector3(0, 0.2, 11.8);
+    const camTargetLook = new THREE.Vector3(0, 0, 0);
+    const currentLook = new THREE.Vector3(0, 0, 0);
+    camera.position.copy(camTargetPos);
+
+    let isDragging = false;
+    let prevX = 0, prevY = 0;
+    let universeRotY = 0;
+    let universeRotX = 0.08;
+
+    const markers = document.querySelectorAll('.g-marker');
+    const qBtns = document.querySelectorAll('.q-btn');
+    const panes = document.querySelectorAll('.galaxy-pane');
+    const hudStatus = document.getElementById('hudStatus');
+    const hudHint = document.getElementById('hudHint');
+    const leftGalCode = document.getElementById('leftGalCode');
+    const leftGalTitle = document.getElementById('leftGalTitle');
+    const leftGalDesc = document.getElementById('leftGalDesc');
+    const interiorConsole = document.getElementById('interiorConsole');
+
+    // hostGalaxy: thiên hà mà camera đang đứng (nơi bay vào từ toàn cảnh).
+    // currentGalaxy: nội dung đang xem. Khi chuyển thiên hà ở bên trong, hành tinh mới được "ký sinh" lên đúng chỗ host bằng Venom.
+    let hostGalaxy = null;
+    let morph = null; // { from, to, t0, dur }
+    const MORPH_MS = 800;
+    const morphCenter = new THREE.Vector3();
+
+    function setCamFor(hostIdx, viewIdx) {
+      const def = GALAXY_DEFS[hostIdx], v = PLANETS[viewIdx].view;
+      camTargetPos.set(def.pos.x, def.pos.y + v * 0.24, def.pos.z + v);
+      camTargetLook.copy(def.pos);
+    }
+
+    function startMorph(from, to, dir) {
+      if (morph) finishMorph();
+      const A = systems[from], B = systems[to];
+      const rA = PLANETS[from].r * A.planet.scale.x;
+      systems[hostGalaxy].tilt.add(B.group);            // đặt hành tinh mới vào đúng chỗ hành tinh đang đứng
+      B.planet.scale.setScalar((rA * 1.07) / PLANETS[to].r); // dày hơn 7% để lớp Venom trùm LÊN trên bề mặt cũ
+      B.acc.scale.setScalar(0.001);
+      // dir +1 (tới): trào từ dưới lên; -1 (lùi): trùm từ trên xuống
+      [[A, -1], [B, 1]].forEach(([s, mode]) => {
+        const u = s.planet.material.uniforms;
+        u.uMode.value = mode;
+        u.uDir.value = dir;
+        u.uLevel.value = -1.25;
+        u.uSeam.value.copy(B.planet.material.uniforms.uColC.value);
+      });
+      morph = { from, to, t0: performance.now(), dur: MORPH_MS };
+    }
+
+    function finishMorph() {
+      const A = systems[morph.from], B = systems[morph.to];
+      [A, B].forEach((s) => {
+        s.planet.material.uniforms.uMode.value = 0;
+        s.atm.material.uniforms.uStrength.value = 1;
+        s.acc.scale.setScalar(1);
+      });
+      // Ẩn hành tinh cũ NGAY trong khung hình này (nếu đợi vòng render sau sẽ bị nháy lại 1 frame)
+      if (morph.from !== currentGalaxy) A.group.visible = false;
+      morph = null;
+    }
+
+    // dir (tuỳ chọn): +1 tới / -1 lùi. Bấm menu thì suy ra từ số thứ tự; lăn chuột vòng 05 → 01 thì truyền +1
+    function enterGalaxy(idx, dir) {
+      const def = GALAXY_DEFS[idx];
+      if (currentGalaxy === null) {
+        // Từ toàn cảnh: bay camera vào thiên hà
+        hostGalaxy = idx;
+        document.body.classList.add('in-galaxy');
+        universeRotY = 0; // reset góc xoay vũ trụ để vị trí thiên hà ổn định
+        universeRotX = 0;
+        setCamFor(idx, idx);
+        playWarpSound(true);
+        hudHint.textContent = '[ KÉO CHUỘT ĐỂ XOAY HÀNH TINH • VUỐT / LĂN CHUỘT HOẶC PHÍM ↑ ↓ ĐỂ ĐỔI THIÊN HÀ ]';
+      } else if (idx !== currentGalaxy) {
+        // Đang ở trong: biến hình Venom ngay tại chỗ, camera chỉ chỉnh nhẹ khoảng cách cho vừa hành tinh mới
+        const d = dir || (idx > currentGalaxy ? 1 : -1);
+        startMorph(currentGalaxy, idx, d);
+        setCamFor(hostGalaxy, idx);
+        playWarpSound(d > 0);
+      }
+      currentGalaxy = idx;
+
+      // Update UI Panes & HUD
+      panes.forEach((p) => p.classList.toggle('active', parseInt(p.dataset.pane, 10) === idx));
+      qBtns.forEach((b) => b.classList.toggle('active', b.dataset.g === String(idx)));
+      hudStatus.textContent = `INSIDE ${def.code} // ${def.title.toUpperCase()}`;
+      leftGalCode.textContent = def.code;
+      leftGalTitle.textContent = def.title;
+      leftGalDesc.textContent = def.desc;
+      interiorConsole.scrollTop = 0;
+    }
+
+    function returnToUniverse() {
+      if (currentGalaxy === null) return;
+      if (morph) finishMorph();
+      if (currentGalaxy !== hostGalaxy) {
+        // Hành tinh đang xem không phải của host: dịch camera sang nhà của nó (cùng góc nhìn) rồi mới bay ra,
+        // để hành tinh trước mặt không bị đổi đột ngột
+        const delta = GALAXY_DEFS[currentGalaxy].pos.clone().sub(GALAXY_DEFS[hostGalaxy].pos);
+        camera.position.add(delta);
+        currentLook.add(delta);
+        systems[currentGalaxy].tilt.quaternion.copy(systems[hostGalaxy].tilt.quaternion);
+      }
+      systems.forEach((s) => { if (s.group.parent !== s.tilt) s.tilt.add(s.group); }); // trả mọi hành tinh về nhà
+      currentGalaxy = null;
+      hostGalaxy = null;
+      document.body.classList.remove('in-galaxy');
+      camTargetPos.set(0, 0.2, 11.8);
+      camTargetLook.set(0, 0, 0);
+      qBtns.forEach((b) => b.classList.toggle('active', b.dataset.g === 'overview'));
+      hudStatus.textContent = 'UNIVERSE OVERVIEW // CHỌN 1 TRONG 5 THIÊN HÀ ĐỂ KHÁM PHÁ';
+      hudHint.textContent = '[ KÉO CHUỘT ĐỂ XOAY VŨ TRỤ • ẤN VÀO THIÊN HÀ ĐỂ BAY VÀO ]';
+      playWarpSound(false);
+    }
+
+    window.enterGalaxy = enterGalaxy;
+    window.returnToUniverse = returnToUniverse;
+
+    // ============================================================================
+    // 3b. LĂN CHUỘT / VUỐT ĐỂ SANG THIÊN HÀ KẾ — mỗi cú lăn 1 thiên hà, chạy xong mới nhận cú tiếp, đi vòng 05 ↔ 01
+    // ============================================================================
+    const GESTURE_GAP_MS = 200; // các sự kiện wheel cách nhau ít hơn mức này = cùng 1 cú lăn (kể cả quán tính trackpad)
+    const WHEEL_TRIGGER = 30;   // cộng dồn đủ 30px trong 1 cú lăn mới chuyển (trackpad Mac bắt đầu bằng vài nhịp 1–3px)
+    let lastWheelAt = 0, wheelAcc = 0, wheelUsed = false;
+    let touchStart = null;
+
+    function stepGalaxy(dir) {
+      if (currentGalaxy === null || morph) return; // đang biến hình thì bỏ qua
+      enterGalaxy((currentGalaxy + dir + 5) % 5, dir);
+    }
+    // Trong bảng chi tiết: lăn/vuốt chỉ để cuộn đọc chữ, KHÔNG bao giờ chuyển thiên hà (chốt 13/11)
+    function consoleAllows(el) {
+      return !el;
+    }
+
+    window.addEventListener('wheel', (e) => {
+      const now = performance.now();
+      if (now - lastWheelAt > GESTURE_GAP_MS) { wheelAcc = 0; wheelUsed = false; } // bắt đầu cú lăn mới
+      lastWheelAt = now;
+      if (currentGalaxy === null || wheelUsed || e.deltaY === 0) return;
+      const dy = e.deltaY * (e.deltaMode === 1 ? 16 : 1); // Firefox báo theo dòng
+      if (!consoleAllows(e.target.closest('.interior-console'))) { wheelAcc = 0; return; }
+      wheelAcc += dy;
+      if (Math.abs(wheelAcc) < WHEEL_TRIGGER) return;
+      wheelUsed = true; // cả phần còn lại của cú lăn (quán tính) bị bỏ qua
+      stepGalaxy(Math.sign(wheelAcc));
+    }, { passive: true });
+
+    // Phím ↑ ↓ (và Page Up / Page Down)
+    window.addEventListener('keydown', (e) => {
+      if (currentGalaxy === null || e.repeat) return;
+      const dir = { ArrowDown: 1, PageDown: 1, ArrowUp: -1, PageUp: -1 }[e.key];
+      if (!dir) return;
+      const inConsole = document.activeElement && document.activeElement.closest && document.activeElement.closest('.interior-console');
+      if (!consoleAllows(inConsole)) return;
+      e.preventDefault();
+      stepGalaxy(dir);
+    });
+    document.getElementById('navPrevBtn').addEventListener('click', () => stepGalaxy(-1));
+    document.getElementById('navNextBtn').addEventListener('click', () => stepGalaxy(1));
+
+    window.addEventListener('touchstart', (e) => {
+      const t = e.touches[0];
+      touchStart = { x: t.clientX, y: t.clientY, el: e.target.closest('.interior-console') };
+    }, { passive: true });
+    window.addEventListener('touchend', (e) => {
+      if (!touchStart || currentGalaxy === null) return;
+      const t = e.changedTouches[0], dy = touchStart.y - t.clientY, dx = touchStart.x - t.clientX;
+      const el = touchStart.el;
+      touchStart = null;
+      if (Math.abs(dy) < 60 || Math.abs(dy) < Math.abs(dx) * 1.5) return; // phải là cú vuốt dọc rõ ràng
+      const dir = dy > 0 ? 1 : -1; // vuốt lên = thiên hà kế
+      if (consoleAllows(el)) stepGalaxy(dir);
+    }, { passive: true });
+
+    // Bind markers & quickbar buttons
+    markers.forEach((m) => {
+      m.addEventListener('click', () => enterGalaxy(parseInt(m.dataset.g, 10)));
+      m.addEventListener('mouseenter', () => { hoveredGalaxy = parseInt(m.dataset.g, 10); playClick(320); });
+      m.addEventListener('mouseleave', () => { hoveredGalaxy = null; });
+    });
+
+    qBtns.forEach((btn) => {
+      btn.addEventListener('click', () => {
+        if (btn.dataset.g === 'overview') returnToUniverse();
+        else enterGalaxy(parseInt(btn.dataset.g, 10));
+      });
+    });
+
+    document.getElementById('backUniverseBtn').addEventListener('click', returnToUniverse);
+    document.getElementById('homeLogoBtn').addEventListener('click', returnToUniverse);
+    document.getElementById('directContactBtn').addEventListener('click', () => enterGalaxy(4));
+
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && currentGalaxy !== null) returnToUniverse();
+    });
+    const hashG = location.hash.match(/g=(\d)/);
+    if (hashG) enterGalaxy(+hashG[1]);
+
+    // Drag to rotate universe (or rotate the active galaxy when inside!)
+    window.addEventListener('pointerdown', (e) => {
+      if (e.target.closest('.g-marker, .hud-top, .interior-console, .interior-left-hud')) return;
+      isDragging = true;
+      prevX = e.clientX;
+      prevY = e.clientY;
+    });
+
+    window.addEventListener('pointerup', () => {
+      isDragging = false;
+      if (performance.now() - lastMoveAt > 80) spinVX = spinVY = 0; // dừng tay rồi mới thả thì không văng
+    });
+
+    // Khi ở trong thiên hà: kéo chuột xoay cả hệ (hành tinh 3D + phụ kiện + bụi sao) quanh trục màn hình, có quán tính
+    const AXIS_X = new THREE.Vector3(1, 0, 0), AXIS_Y = new THREE.Vector3(0, 1, 0), IDENTITY_Q = new THREE.Quaternion();
+    const ONE_V = new THREE.Vector3(1, 1, 1);
+    let spinVX = 0, spinVY = 0, lastMoveAt = 0;
+    function spinActive(dx, dy) {
+      const t = systems[hostGalaxy].tilt;
+      t.rotateOnWorldAxis(AXIS_Y, dx);
+      t.rotateOnWorldAxis(AXIS_X, dy);
+    }
+
+    window.addEventListener('pointermove', (e) => {
+      if (!isDragging) return;
+      const dx = e.clientX - prevX;
+      const dy = e.clientY - prevY;
+      prevX = e.clientX;
+      prevY = e.clientY;
+
+      if (currentGalaxy === null) {
+        universeRotY = Math.max(-0.5, Math.min(0.5, universeRotY + dx * 0.0045)); // giới hạn góc xoay để các thiên hà không chồng lên nhau
+        universeRotX = Math.max(-0.55, Math.min(0.55, universeRotX + dy * 0.0045));
+      } else {
+        spinVX = dx * 0.0065;
+        spinVY = dy * 0.0065;
+        lastMoveAt = performance.now();
+        spinActive(spinVX, spinVY);
+      }
+    });
+
+    // Also allow clicking directly on a 3D galaxy particle cloud via raycasting in Overview mode
+    const raycaster = new THREE.Raycaster();
+    raycaster.params.Points.threshold = 0.45;
+    const pointerNDC = new THREE.Vector2();
+    let downPos = { x: 0, y: 0 };
+
+    canvas.addEventListener('pointerdown', (e) => {
+      downPos = { x: e.clientX, y: e.clientY };
+    });
+
+    canvas.addEventListener('pointerup', (e) => {
+      if (currentGalaxy !== null) return;
+      if (Math.hypot(e.clientX - downPos.x, e.clientY - downPos.y) > 6) return;
+      pointerNDC.x = (e.clientX / window.innerWidth) * 2 - 1;
+      pointerNDC.y = -(e.clientY / window.innerHeight) * 2 + 1;
+      raycaster.setFromCamera(pointerNDC, camera);
+      const hits = raycaster.intersectObjects([...galaxyMeshes, ...planetMeshes]);
+      if (hits.length > 0) {
+        enterGalaxy(hits[0].object.userData.galaxyId);
+      }
+    });
+
+    // ============================================================================
+    // 4. RENDER LOOP & 3D-TO-2D MARKER PROJECTION
+    // ============================================================================
+    const projVec = new THREE.Vector3();
+    const labelVec = new THREE.Vector3();
+    const LABEL_GAP = [1.35, 1.25, 1.5, 1.1, 1.55]; // khoảng hở dưới hành tinh (theo bán kính) cho nhãn
+    const cosmosBg = document.getElementById('cosmos-bg');
+
+    // Chạy full 60/120fps mượt mà, nội suy độc lập tốc độ khung hình (exponential damping) để bay vào cực nhanh và không giật
+    let lastFrame = performance.now();
+    const viewOff = { x: 0, y: 0 };
+    // Máy yếu: cứ mỗi 90 khung hình đo một lần; nếu trung bình chậm hơn ~45fps thì hạ độ phân giải (2 nấc)
+    let perfFrames = 0, perfSum = 0, quality = 0;
+    const preloaderEl = document.getElementById('preloader');
+    function adaptQuality(dtSec) {
+      if (quality >= 2 || !preloaderEl.classList.contains('done') || document.hidden) return;
+      perfSum += dtSec;
+      if (++perfFrames < 90) return;
+      if (perfSum / perfFrames > 0.022) {
+        quality++;
+        renderer.setPixelRatio(quality === 1 ? Math.min(pixelRatio, 1) : 0.75);
+      }
+      perfFrames = 0;
+      perfSum = 0;
+    }
+    function animate(now = performance.now()) {
+      requestAnimationFrame(animate);
+      const dtSec = Math.min(Math.max((now - lastFrame) * 0.001, 0.001), 0.05);
+      lastFrame = now;
+      adaptQuality(dtSec);
+      const spinning = isDragging || Math.abs(spinVX) + Math.abs(spinVY) > 1e-4;
+      const fastEase = 1 - Math.exp(-14.5 * dtSec);  // bay camera cực nhanh & mượt (~0.25s tới đích)
+      const lookEase = 1 - Math.exp(-17.0 * dtSec);
+      const softEase = 1 - Math.exp(-9.0 * dtSec);
+
+      // Spin each of the 5 galaxies around its local axis
+      const step60 = dtSec * 60;
+      galaxyMeshes.forEach((mesh, idx) => {
+        mesh.rotation.y += (idx % 2 === 0 ? 0.0024 : -0.0021) * step60;
+      });
+      bgStars.rotation.y += 0.0003 * step60;
+
+      // Hành tinh 3D: tự quay, phụ kiện quay, shader chạy theo thời gian
+      const tSec = now * 0.001;
+      timedMats.forEach((m) => { m.uniforms.uTime.value = tSec; });
+      systems.forEach((s, i) => {
+        s.planet.rotation.y += 0.0018 * step60;
+        if (i !== hostGalaxy) s.tilt.quaternion.slerp(IDENTITY_Q, softEase); // thiên hà không có camera tự trả về tư thế gốc
+        // Đang ở trong: chỉ hiện hành tinh đang xem (+ hành tinh cũ khi Venom đang phủ); làm mờ bụi sao của thiên hà khác
+        s.group.visible = currentGalaxy === null || i === currentGalaxy || (morph !== null && i === morph.from);
+        const other = hostGalaxy !== null && i !== hostGalaxy;
+        const pm = galaxyMeshes[i].material;
+        pm.opacity += ((other ? 0.12 : 0.75) - pm.opacity) * fastEase;
+        // Sau Venom, hành tinh mới từ từ về đúng kích thước gốc của nó
+        if (!morph || i !== morph.to) s.planet.scale.lerp(ONE_V, softEase);
+        s.atm.scale.copy(s.planet.scale);
+      });
+
+      // ---- VENOM MORPH: mép lượn sóng bò qua hành tinh trong MORPH_MS ----
+      if (morph) {
+        const k = Math.min(1, (now - morph.t0) / morph.dur);
+        const e = 1 - Math.pow(1 - k, 2.2); // bắt đầu bò ngay, chậm dần khi gần phủ kín
+        const A = systems[morph.from], B = systems[morph.to];
+        systems[hostGalaxy].system.getWorldPosition(morphCenter);
+        [A, B].forEach((s) => {
+          const u = s.planet.material.uniforms;
+          u.uLevel.value = -1.25 + 2.55 * e;
+          u.uCenter.value.copy(morphCenter);
+        });
+        A.atm.material.uniforms.uStrength.value = 1 - e;
+        B.atm.material.uniforms.uStrength.value = e;
+        const kOut = Math.min(1, k / 0.6), kIn = Math.max(0, (k - 0.3) / 0.7);
+        A.acc.scale.setScalar(Math.max(0.001, 1 - kOut * kOut));                              // phụ kiện cũ co lại
+        const c1 = 1.70158, back = 1 + (c1 + 1) * Math.pow(kIn - 1, 3) + c1 * Math.pow(kIn - 1, 2);
+        B.acc.scale.setScalar(Math.max(0.001, back));                                         // phụ kiện mới bung nở
+        if (k >= 1) finishMorph();
+      }
+      lineMat.opacity += ((currentGalaxy === null ? 0.12 : 0) - lineMat.opacity) * fastEase;
+      spinners.forEach(([o, axis, speed]) => { o.rotation[axis] += speed * step60; });
+      bobbers.forEach(([sp, y], i) => { sp.position.y = y + Math.sin(tSec * 1.6 + i) * 0.03; });
+      if (currentGalaxy !== null && !isDragging && spinning) {
+        spinActive(spinVX, spinVY);
+        const decay = Math.pow(0.92, step60);
+        spinVX *= decay;
+        spinVY *= decay;
+      }
+
+      // Dịch khung hình để hành tinh nằm giữa phần màn hình bên trái không bị bảng nội dung che
+      const vw = window.innerWidth, vh = window.innerHeight;
+      const inside = currentGalaxy !== null && vw > 960;
+      const wantX = inside ? vw / 2 - (vw - 38 - Math.min(760, vw - 76)) / 2 : 0;
+      const wantY = inside ? vh * 0.06 : 0;
+      viewOff.x += (wantX - viewOff.x) * fastEase;
+      viewOff.y += (wantY - viewOff.y) * fastEase;
+      if (Math.abs(viewOff.x) > 0.5 || Math.abs(viewOff.y) > 0.5) camera.setViewOffset(vw, vh, viewOff.x, viewOff.y, vw, vh);
+      else if (camera.view && camera.view.enabled) camera.clearViewOffset();
+
+      // Art layers: tinh vân xoay chậm, tâm thiên hà "thở", phóng to khi hover / đang ở trong
+      const t = tSec;
+      artGroups.forEach((g, gi) => {
+        const focus = gi === hoveredGalaxy || gi === hostGalaxy ? 1 : 0;
+        const dim = hostGalaxy !== null && gi !== hostGalaxy ? 0.25 : 1;
+        g.children.forEach((sp) => {
+          const u = sp.userData;
+          u.k = (u.k || 1) + ((1 + focus * 0.12) - (u.k || 1)) * fastEase;
+          const breathe = u.layer === 0 ? 1 + Math.sin(t * 0.6 + gi) * 0.04 : 1 + Math.sin(t * 1.2 + gi) * 0.012;
+          sp.scale.set(u.baseScale.x * u.k * breathe, u.baseScale.y * u.k * breathe, 1);
+          if (u.layer === 0) sp.material.rotation = t * 0.03 * (gi % 2 ? -1 : 1);
+          sp.material.opacity += (u.baseOp * dim * (u.layer === 0 ? 1 + focus * 0.4 : 1) - sp.material.opacity) * fastEase;
+          if (u.file === 'domi') sp.position.y = u.baseY + Math.sin(t * 1.6) * 0.06; // DOMI lơ lửng
+        });
+      });
+
+      // Parallax nền vũ trụ theo góc xoay
+      const bgT = `translate3d(${(-universeGroup.rotation.y * 40).toFixed(1)}px, ${(universeGroup.rotation.x * 30).toFixed(1)}px, 0)`;
+      if (bgT !== cosmosBg._t) cosmosBg.style.transform = cosmosBg._t = bgT;
+
+      // Smoothly interpolate Universe group rotation
+      universeGroup.rotation.y += (universeRotY - universeGroup.rotation.y) * fastEase;
+      universeGroup.rotation.x += (universeRotX - universeGroup.rotation.x) * fastEase;
+
+      // Smooth & fast camera fly-to interpolation
+      camera.position.lerp(camTargetPos, fastEase);
+      currentLook.lerp(camTargetLook, lookEase);
+      camera.lookAt(currentLook);
+
+      // Sắp xếp theo độ sâu: thiên hà gần camera vẽ đè lên thiên hà xa (cả sprite lẫn nhãn)
+      universeGroup.updateMatrixWorld();
+      const depthRank = artGroups
+        .map((g, i) => ({ i, d: g.getWorldPosition(projVec).distanceTo(camera.position) }))
+        .sort((a, b) => b.d - a.d); // xa -> gần
+      depthRank.forEach(({ i }, rank) => {
+        artGroups[i].children.forEach((sp) => { sp.renderOrder = rank * 10 + sp.userData.layer; });
+        galaxyMeshes[i].renderOrder = rank * 10 + 0.5;
+        systems[i].fx.forEach((o) => { o.renderOrder = rank * 10 + 0.7; });
+        const m = markers[i], z = 20 + rank;
+        if (m && m._z !== z) { m._z = z; m.style.zIndex = z; }
+      });
+
+      // Project 3D galaxy centers onto 2D screen coordinates for the 5 HUD Markers
+      if (currentGalaxy === null) {
+        galaxyMeshes.forEach((mesh, idx) => {
+          // Đặt nhãn ngay dưới hành tinh 3D (cộng phần vành/vòm) để không che mất khối 3D
+          projVec.setFromMatrixPosition(mesh.matrixWorld);
+          labelVec.setFromMatrixColumn(camera.matrixWorld, 1).multiplyScalar(-PLANETS[idx].r * LABEL_GAP[idx]).add(projVec);
+          projVec.project(camera);
+          labelVec.project(camera);
+          const x = (projVec.x * 0.5 + 0.5) * window.innerWidth;
+          const y = (-(labelVec.y * 0.5) + 0.5) * window.innerHeight;
+          const marker = markers[idx];
+          if (marker) {
+            const tr = `${x.toFixed(1)}px ${y.toFixed(1)}px`;
+            if (marker._tr !== tr) { marker._tr = tr; marker.style.translate = tr; }
+            marker._x = x; marker._y = y;
+          }
+        });
+        // Nhãn bị nhãn gần hơn che thì ẩn đi
+        markers.forEach((a) => {
+          const hidden = [...markers].some((b) => b !== a && b._z > a._z &&
+            Math.abs(a._x - b._x) < 230 && Math.abs(a._y - b._y) < 56);
+          if (a._hid !== hidden) {
+            a._hid = hidden;
+            a.style.opacity = hidden ? 0 : 1;
+            a.style.pointerEvents = hidden ? 'none' : 'auto';
+          }
+        });
+      }
+
+      renderer.render(scene, camera);
+    }
+    animate();
+
+    window.addEventListener('resize', () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+
+    // ============================================================================
+    // 5. GALAXY 03 INTERACTIVE CONTROLS (DOME VIEW + DETENT ROTARY DIAL)
+    // ============================================================================
+    // Galaxy 02: orb steps
+    const orbDetail = document.getElementById('orbDetail');
+    document.querySelectorAll('.orb-step').forEach((el, i, all) => {
+      el.addEventListener('mouseenter', () => {
+        all.forEach((o) => o.classList.toggle('active', o === el));
+        orbDetail.textContent = el.dataset.detail;
+        playClick(200 + i * 40);
+      });
+    });
+
+    // Galaxy 04: xoay DOMI
+    const domiImg = document.getElementById('domiImg');
+    const poseBtns = [...document.querySelectorAll('.domi-pose')];
+    function setPose(btn) {
+      poseBtns.forEach((b) => b.classList.toggle('active', b === btn));
+      domiImg.style.opacity = 0;
+      setTimeout(() => { domiImg.src = btn.dataset.src; domiImg.style.opacity = 1; }, 180);
+      playClick(260);
+    }
+    poseBtns.forEach((b) => b.addEventListener('click', () => setPose(b)));
+    document.getElementById('domiFigure').addEventListener('click', () => {
+      const i = poseBtns.findIndex((b) => b.classList.contains('active'));
+      setPose(poseBtns[(i + 1) % poseBtns.length]);
+    });
+
+    const domeViewBtns = document.querySelectorAll('.dome-view-btn');
+    const domeStageImg = document.getElementById('domeStageImg');
+
+    domeViewBtns.forEach((btn) => {
+      btn.addEventListener('click', () => {
+        domeViewBtns.forEach((b) => b.classList.remove('active'));
+        btn.classList.add('active');
+        domeStageImg.src = btn.dataset.src;
+        domeStageImg.classList.toggle('contain', btn.dataset.contain === 'true');
+        playClick(240);
+      });
+    });
+
+    const layoutData = [
+      {
+        deg: 0,
+        img: 'assets/layout-seated.webp',
+        code: 'LAYOUT 01 // SEATED SHOW',
+        title: 'Cấu Hình Thưởng Thức — 848 Khách',
+        desc: '100% vị trí ngồi sang trọng, góc nhìn không bị che chắn. Dòng nhạc: Acoustic, Ballad, Lofi. Phù hợp Hội nghị khách hàng VIP & Đêm tri ân.'
+      },
+      {
+        deg: -120,
+        img: 'assets/layout-hybrid.webp',
+        code: 'LAYOUT 02 // HYBRID SHOW',
+        title: 'Cấu Hình Kết Hợp — 1.200 Khách',
+        desc: 'Kết hợp khu vực đứng Fanzone gần sân khấu & khán đài ngồi. Phù hợp Brand Event, Lễ kỷ niệm cột mốc doanh nghiệp.'
+      },
+      {
+        deg: 120,
+        img: 'assets/layout-standing.webp',
+        code: 'LAYOUT 03 // STANDING SHOW',
+        title: 'Cấu Hình Bùng Nổ — 1.700 Khách',
+        desc: 'Không gian mở 360° tự do di chuyển. Dòng nhạc: Pop-Art, EDM, Hip-hop sôi động. Phù hợp Year End Party (YEP) & Activation.'
+      }
+    ];
+
+    let curLayout = 0;
+    const knobCtrl = document.getElementById('knobCtrl');
+    const dialLbls = document.querySelectorAll('.dial-lbl');
+    const layoutThumb = document.getElementById('layoutThumb');
+    const lCode = document.getElementById('lCode');
+    const lTitle = document.getElementById('lTitle');
+    const lDesc = document.getElementById('lDesc');
+
+    function setLayout(i) {
+      curLayout = i;
+      const d = layoutData[i];
+      knobCtrl.style.transform = `rotate(${d.deg}deg)`;
+      dialLbls.forEach((l) => l.classList.toggle('active', parseInt(l.dataset.l, 10) === i));
+      layoutThumb.src = d.img;
+      lCode.textContent = d.code;
+      lTitle.textContent = d.title;
+      lDesc.textContent = d.desc;
+      playClick(190 + i * 50);
+    }
+
+    knobCtrl.addEventListener('click', () => setLayout((curLayout + 1) % 3));
+    dialLbls.forEach((l) => l.addEventListener('click', () => setLayout(parseInt(l.dataset.l, 10))));
+  </script>
+</body>
+</html>
