@@ -412,6 +412,7 @@
       font-weight: 600;
     }
     .step-nav { display: flex; gap: 6px; margin: -6px 0 16px; }
+    .hud-btn-mobile, .nav-counter { display: none; }
 
     /* Right side architectural inspection console */
     .interior-console {
@@ -609,17 +610,6 @@
       align-items: center;
     }
 
-    @media (max-width: 960px) {
-      .galaxy-quickbar, .interior-left-hud {
-        display: none;
-      }
-      #galaxy-interior {
-        padding: 68px 14px 54px;
-      }
-      .hairline-grid, .hardware-box {
-        grid-template-columns: 1fr;
-      }
-    }
     /* ===== ART LAYER (assets từ brand PDF) ===== */
     #cosmos-bg {
       position: fixed;
@@ -764,6 +754,263 @@
       filter: brightness(0.85);
     }
     .h-cell:hover .holo { transform: translateY(-4px) scale(1.06); filter: brightness(1.15) drop-shadow(0 0 14px rgba(90, 160, 255, 0.5)); }
+    /* ===== MOBILE (đặt cuối để ghi đè các style gốc) ===== */
+    @media (max-width: 960px) {
+      /* 1. KHUNG HUD TRÊN & ĐÁY TRÊN ĐIỆN THOẠI */
+      .hud-frame {
+        padding: 12px 14px;
+        margin: 0;
+        border: none;
+      }
+      .hud-top {
+        gap: 8px;
+      }
+      .brand-link img {
+        height: 24px;
+      }
+      .brand-sub {
+        display: none;
+      }
+      .galaxy-quickbar {
+        display: none; /* Quickbar ẩn trên mobile vì chật, thay bằng các nút điều hướng bên trong */
+      }
+      .hud-bottom {
+        display: none; /* Ẩn dòng chữ kỹ thuật dài ở đáy trên mobile để không đè lên thẻ giới thiệu */
+      }
+      #soundBtn {
+        padding: 6px 10px;
+        font-size: 9.5px;
+      }
+      #directContactBtn {
+        padding: 6px 10px;
+        font-size: 9.5px;
+      }
+
+      /* 2. LỜI GIỚI THIỆU TOÀN CẢNH: chữ trơn trên nền gradient tối, không khung, không đoạn phụ */
+      .universe-prompt {
+        left: 0;
+        right: 0;
+        bottom: 0;
+        max-width: none;
+        padding: 56px 20px 22px;
+        background: linear-gradient(to top, rgba(4, 5, 9, 0.92) 30%, rgba(4, 5, 9, 0));
+      }
+      .prompt-eyebrow {
+        font-size: 9px;
+        letter-spacing: 0.16em;
+        margin-bottom: 6px;
+      }
+      .prompt-h1 {
+        font-size: 20px;
+        line-height: 1.25;
+        margin-bottom: 0;
+      }
+      .prompt-sub { display: none; }
+
+      /* 3. NHÃN THIÊN HÀ: chữ nhỏ không khung */
+      .g-tag {
+        min-width: 0;
+        padding: 0;
+        background: none;
+        border: none;
+        white-space: nowrap;
+        text-shadow: 0 1px 8px rgba(0, 0, 0, 0.95), 0 0 2px rgba(0, 0, 0, 0.9);
+      }
+      .g-marker:hover .g-tag { background: none; }
+      .g-code {
+        font-size: 8.5px;
+        letter-spacing: 0.14em;
+        margin-bottom: 1px;
+      }
+      .g-title {
+        font-size: 12px;
+        font-weight: 400;
+      }
+      .g-enter-hint { display: none !important; }
+
+      /* 4. BÊN TRONG THIÊN HÀ: chỉ hiện thông tin toàn màn hình, không hiện hành tinh */
+      body.in-galaxy #galaxy-interior {
+        background: #06070c;
+      }
+      #galaxy-interior {
+        padding: 0;
+        display: block;
+      }
+
+      /* Thanh điều hướng: ← Vũ trụ | ‹ 03 / 05 › */
+      .hud-btn-desktop { display: none !important; }
+      .hud-btn-mobile { display: inline !important; }
+      .interior-left-hud {
+        position: fixed;
+        top: 56px;
+        left: 16px;
+        right: 16px;
+        bottom: auto;
+        max-width: none;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        z-index: 50;
+      }
+      .back-universe-btn {
+        margin: 0;
+        padding: 8px 0;
+        font-size: 10.5px;
+        letter-spacing: 0.12em;
+        background: none;
+        border: none;
+        color: var(--text-dim);
+      }
+      .back-universe-btn:hover { background: none; color: var(--accent); font-weight: 400; }
+      .step-nav {
+        margin: 0;
+        gap: 2px;
+        align-items: center;
+      }
+      .step-nav .tactile-btn {
+        width: 34px;
+        height: 34px;
+        padding: 0;
+        justify-content: center;
+        font-size: 15px;
+        background: none;
+        border: 1px solid var(--hairline-bright);
+        border-radius: 50%;
+        box-shadow: none;
+      }
+      .nav-counter {
+        display: inline-block !important;
+        min-width: 58px;
+        text-align: center;
+        font-family: var(--mono);
+        font-size: 11px;
+        letter-spacing: 0.12em;
+        color: var(--text-dim);
+      }
+      .nav-counter b { color: var(--accent); font-weight: 500; }
+      #leftGalCode, #leftGalTitle, #leftGalDesc { display: none; }
+
+      .interior-console {
+        position: fixed;
+        top: 104px;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        width: auto;
+        max-height: none;
+        padding: 22px 20px 48px;
+        background: transparent;
+        border: none;
+        border-top: 1px solid var(--hairline);
+        box-shadow: none;
+        transform: translateY(12px);
+        transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+        -webkit-overflow-scrolling: touch;
+      }
+      body.in-galaxy .interior-console { transform: translateY(0); }
+      .interior-console::-webkit-scrollbar { width: 0; }
+
+      /* 5. CÁC KHỐI NỘI DUNG CO GIÃN THEO MÀN HÌNH NHỎ */
+      .pane-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 6px;
+        margin-bottom: 12px;
+      }
+      .pane-title {
+        font-size: 20px;
+      }
+      .hero-figure {
+        margin: 10px 0;
+        aspect-ratio: 16 / 9;
+      }
+      /* các lưới 3–5 cột bị bóp nghẹt trên màn hẹp: xếp 1 cột (lưới 5 ô gọn thành 2 cột) */
+      .hairline-grid {
+        grid-template-columns: 1fr !important;
+        gap: 8px;
+        margin: 12px 0;
+      }
+      .hairline-grid[style*="repeat(5"] {
+        grid-template-columns: 1fr 1fr !important;
+      }
+      .merch-row {
+        grid-template-columns: repeat(3, 1fr) !important;
+      }
+      .grid-card {
+        padding: 14px;
+      }
+
+      /* Thiên hà 02: 5 bước xoay ngang dạng Carousel vuốt mượt */
+      .orb-steps {
+        display: flex;
+        overflow-x: auto;
+        scroll-snap-type: x mandatory;
+        gap: 12px;
+        padding: 4px 2px 10px;
+        -webkit-overflow-scrolling: touch;
+      }
+      .orb-steps::-webkit-scrollbar {
+        height: 3px;
+      }
+      .orb-steps::-webkit-scrollbar-thumb {
+        background: rgba(255, 255, 255, 0.2);
+      }
+      .orb-steps::before {
+        display: none;
+      }
+      .orb-step {
+        flex: 0 0 74px;
+        scroll-snap-align: start;
+      }
+      .orb-step img {
+        width: 58px;
+        height: 58px;
+      }
+
+      /* Thiên hà 03: nút và núm vặn DOME 360 */
+      .dome-views {
+        gap: 4px;
+      }
+      .dome-view-btn {
+        padding: 5px 8px;
+        font-size: 9.5px;
+      }
+      .hardware-box {
+        grid-template-columns: 1fr;
+        gap: 14px;
+        padding: 14px;
+      }
+
+      /* Thiên hà 04: Sân khấu DOMI & bộ quà tặng */
+      .domi-stage {
+        grid-template-columns: 1fr;
+        padding: 14px;
+        gap: 14px;
+        text-align: center;
+      }
+      .domi-figure {
+        height: 180px;
+        margin: 0 auto;
+      }
+      .domi-stage .tactile-btn {
+        margin: 2px;
+      }
+      .merch-grid {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 8px;
+      }
+      .merch-card {
+        padding: 10px 6px;
+      }
+      .merch-card img {
+        height: 52px;
+      }
+
+      /* Thiên hà 05: Form liên hệ */
+      .form-grid {
+        grid-template-columns: 1fr;
+      }
+    }
   </style>
 </head>
 <body>
@@ -890,11 +1137,19 @@
   <div id="galaxy-interior">
     <div class="interior-left-hud">
       <button class="back-universe-btn" id="backUniverseBtn" type="button">
-        ← THOÁT RA VŨ TRỤ 5 THIÊN HÀ (ESC)
+        <span class="hud-btn-desktop">← THOÁT RA VŨ TRỤ 5 THIÊN HÀ (ESC)</span>
+        <span class="hud-btn-mobile">← VŨ TRỤ</span>
       </button>
       <div class="step-nav">
-        <button class="tactile-btn" id="navPrevBtn" type="button" title="Thiên hà trước (phím ↑)">↑ THIÊN HÀ TRƯỚC</button>
-        <button class="tactile-btn" id="navNextBtn" type="button" title="Thiên hà kế (phím ↓)">↓ THIÊN HÀ KẾ</button>
+        <button class="tactile-btn" id="navPrevBtn" type="button" title="Thiên hà trước (phím ↑)">
+          <span class="hud-btn-desktop">↑ THIÊN HÀ TRƯỚC</span>
+          <span class="hud-btn-mobile">‹</span>
+        </button>
+        <span class="nav-counter" id="navCounter"><b>01</b> / 05</span>
+        <button class="tactile-btn" id="navNextBtn" type="button" title="Thiên hà kế (phím ↓)">
+          <span class="hud-btn-desktop">↓ THIÊN HÀ KẾ</span>
+          <span class="hud-btn-mobile">›</span>
+        </button>
       </div>
       <div style="font-family: var(--mono); font-size: 10px; color: var(--accent); letter-spacing: 0.16em;" id="leftGalCode">
         THIÊN HÀ 01 // ALPHA
@@ -1126,7 +1381,7 @@
         <div style="font-family: var(--mono); font-size: 10px; color: var(--accent); letter-spacing: 0.14em; margin: 14px 0 8px;">
           BỘ VẬT PHẨM QUẢNG BÁ CUSTOM THEO TỪNG SHOW &amp; NGHỆ SĨ:
         </div>
-        <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; text-align: center;">
+        <div class="merch-row" style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; text-align: center;">
           <div style="border: 1px solid var(--hairline); padding: 10px;">
             <img src="assets/domi.webp" alt="Domi" style="height: 64px; object-fit: contain;" />
             <div style="font-family: var(--mono); font-size: 9.5px; margin-top: 4px;">DOLL DOMI</div>
@@ -1371,13 +1626,29 @@
     const LIGHT_BLEND = { blending: THREE.AdditiveBlending }; // chỉ dùng cho hạt sáng
 
     // Metadata & 3D coordinates for the 5 Galaxies
+    const POS_DESKTOP = [
+      new THREE.Vector3(-5.2, 2.1, -1.2),
+      new THREE.Vector3(5.2, 2.3, -1.8),
+      new THREE.Vector3(0, 0.1, 1.4),
+      new THREE.Vector3(-5.3, -1.25, 0.2),
+      new THREE.Vector3(4.6, -2.3, 0.4)
+    ];
+    // Bố cục zích-zắc dọc cho màn hình điện thoại (portrait / vw <= 960) để thấy trọn vẹn cả 5 hành tinh
+    const POS_MOBILE = [
+      new THREE.Vector3(-1.1, 3.7, 0),
+      new THREE.Vector3(1.1, 2.05, 0),
+      new THREE.Vector3(-0.15, 0.4, 0),
+      new THREE.Vector3(-1.1, -1.25, 0),
+      new THREE.Vector3(1.05, -2.85, 0)
+    ];
+
     const GALAXY_DEFS = [
       {
         id: 0,
         code: 'THIÊN HÀ 01 // ALPHA',
         title: 'Bối Cảnh & Định Vị',
         desc: 'Khám phá triết lý “Mỗi đêm diễn là một hành tinh độc bản” — chuyển dịch từ thưởng thức 2D sang trải nghiệm nhập vai.',
-        pos: new THREE.Vector3(-5.2, 2.1, -1.2),
+        pos: POS_DESKTOP[0].clone(),
         rot: new THREE.Euler(0.45, 0.2, -0.3),
         coreColor: '#ffe5b4',
         midColor: '#e8c99b',
@@ -1389,7 +1660,7 @@
         code: 'THIÊN HÀ 02 // BETA',
         title: 'Mô Hình Show & Vận Hành',
         desc: 'Mô hình Buy-Out Show: Doanh nghiệp sở hữu riêng một nhà hát độc bản với quy trình 5 bước trọn gói.',
-        pos: new THREE.Vector3(5.2, 2.3, -1.8),
+        pos: POS_DESKTOP[1].clone(),
         rot: new THREE.Euler(-0.35, -0.25, 0.2),
         coreColor: '#e0fbfc',
         midColor: '#64dfdf',
@@ -1401,7 +1672,7 @@
         code: 'THIÊN HÀ 03 // DOME 360°',
         title: 'Không Gian Vòm DOME 360° & 3 Layout',
         desc: 'Tâm điểm vũ trụ: Vòm cầu đường kính 35m × cao 17.5m, 8 cổng đón khách độc lập và 3 cấu hình 848 – 1.700 khách.',
-        pos: new THREE.Vector3(0, 0.1, 1.4),
+        pos: POS_DESKTOP[2].clone(),
         rot: new THREE.Euler(0.52, 0, 0),
         coreColor: '#ffffff',
         midColor: '#c77dff',
@@ -1413,7 +1684,7 @@
         code: 'THIÊN HÀ 04 // DELTA',
         title: 'Trải Nghiệm Khán Giả & Đại Sứ DOMI',
         desc: 'Đồng hành cùng sinh vật vũ trụ DOMI qua 3 chặng Before — In — Beyond The Show và bộ Merch custom độc quyền.',
-        pos: new THREE.Vector3(-5.3, -1.25, 0.2),
+        pos: POS_DESKTOP[3].clone(),
         rot: new THREE.Euler(0.38, 0.3, 0.25),
         coreColor: '#ffd6ff',
         midColor: '#ff47b6',
@@ -1425,7 +1696,7 @@
         code: 'THIÊN HÀ 05 // OMEGA',
         title: 'Chiến Lược Marketing, CSKH & Liên Hệ',
         desc: '5 giải pháp sự kiện doanh nghiệp và 5 đòn bẩy thương mại kích cầu doanh số & nâng tầm thương hiệu.',
-        pos: new THREE.Vector3(4.6, -2.3, 0.4),
+        pos: POS_DESKTOP[4].clone(),
         rot: new THREE.Euler(-0.42, 0.15, -0.28),
         coreColor: '#fff3b0',
         midColor: '#fbbf24',
@@ -1630,10 +1901,12 @@
 
     // "DNA bề mặt" của 5 hành tinh. r: bán kính, view: khoảng cách camera khi bay vào, detail: độ mịn lưới (12 = 3.380 đỉnh/hành tinh, tròn mịn & nhẹ hơn 15 lần so với 28)
     const PLANETS = [
-      { r: 0.60, view: 3.7, detail: 12, colA: '#4a2a12', colB: '#e8c99b', colC: '#b06cff', atm: '#ffcf8a', disp: 0.05,  scale: 2.4, bands: 0.0,  cracks: 1.0,  swirl: 0.0,  facet: 0.35, spark: 0.2 },
+      // 01: chuyển từ "khối nhăn nham thạch" sang cẩm thạch champagne mượt, vân tím neon (cùng phong cách 02/03/05 — chốt 13/11)
+      { r: 0.60, view: 3.7, detail: 12, colA: '#3a2410', colB: '#f0d6a8', colC: '#d9a6ff', atm: '#ffcf8a', disp: 0.012, scale: 1.9, bands: 0.5,  cracks: 0.15, swirl: 0.8,  facet: 0.0,  spark: 0.35 },
       { r: 0.55, view: 4.2, detail: 12, colA: '#030a18', colB: '#1b5f86', colC: '#7af5f5', atm: '#64dfdf', disp: 0.01,  scale: 1.8, bands: 0.45, cracks: 0.0,  swirl: 1.0,  facet: 0.0,  spark: 0.5 },
       { r: 0.62, view: 3.9, detail: 12, colA: '#240640', colB: '#c77dff', colC: '#ffd6ff', atm: '#c77dff', disp: 0.012, scale: 2.0, bands: 0.65, cracks: 0.25, swirl: 0.35, facet: 0.0,  spark: 0.3 },
-      { r: 0.56, view: 4.0, detail: 5,  colA: '#3a0f4f', colB: '#ff47b6', colC: '#ffe3ff', atm: '#ff8ad8', disp: 0.07,  scale: 3.2, bands: 0.0,  cracks: 0.0,  swirl: 0.0,  facet: 1.0,  spark: 1.0 },
+      // 04: bỏ mặt pha lê góc cạnh, chuyển sang cẩm thạch hồng mượt có vân sáng
+      { r: 0.56, view: 4.0, detail: 12, colA: '#2a0838', colB: '#ff5cc0', colC: '#ffe3ff', atm: '#ff8ad8', disp: 0.01,  scale: 2.1, bands: 0.35, cracks: 0.1,  swirl: 0.9,  facet: 0.0,  spark: 0.4 },
       { r: 0.58, view: 4.6, detail: 12, colA: '#5a3405', colB: '#fbbf24', colC: '#fff3b0', atm: '#ffd166', disp: 0.008, scale: 1.6, bands: 1.0,  cracks: 0.0,  swirl: 0.25, facet: 0.0,  spark: 0.25 }
     ];
 
@@ -1642,6 +1915,13 @@
     const spinners = [];     // [object, trục, tốc độ] — phụ kiện tự quay
     const ADD = { transparent: true, depthWrite: false, blending: THREE.AdditiveBlending };
     const col = (c) => ({ value: new THREE.Color(c) });
+
+    const texLoader = new THREE.TextureLoader();
+    const texCache = {};
+    function tex(name) {
+      if (!texCache[name]) texCache[name] = texLoader.load(`assets/${name}.webp`);
+      return texCache[name];
+    }
 
     function glowRing(radius, color, opacity, tube = 0.005) {
       return new THREE.Mesh(new THREE.TorusGeometry(radius, tube, 6, 180), new THREE.MeshBasicMaterial({ color, opacity, ...ADD }));
@@ -1712,7 +1992,7 @@
         spinners.push([cage, 'y', 0.0015]);
         g.add(cage, base);
       },
-      // 04 DELTA — vệ tinh ánh sáng chạy trên các quỹ đạo nghiêng
+      // 04 DELTA — vệ tinh ánh sáng chạy trên các quỹ đạo nghiêng + DOMI luôn đồng hành
       (g, R) => {
         for (let i = 0; i < 6; i++) {
           const orbit = new THREE.Group();
@@ -1726,6 +2006,12 @@
           spinners.push([orbit, 'z', (0.004 + i * 0.0011) * (i % 2 ? -1 : 1)]);
           g.add(orbit);
         }
+        // DOMI sprite đồng hành luôn nằm trong acc: co/nở theo Venom và luôn xuất hiện cạnh hành tinh 04
+        const domiSp = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex('domi'), transparent: true, depthWrite: false }));
+        domiSp.scale.set(0.55, 0.55 * 1.28, 1);
+        domiSp.position.set(R * 1.6, R * 0.85, R * 0.4);
+        g.add(domiSp);
+        bobbers.push([domiSp, domiSp.position.y]);
       },
       // 05 OMEGA — hệ vành đai kiểu Sao Thổ (có khe Cassini), nghiêng cả hệ
       (g, R, host) => {
@@ -1803,18 +2089,12 @@
     });
 
     // ---- ART LAYERS: tinh vân nền (giữ lại) + DOMI. Hành tinh 2D cũ đã được thay bằng khối 3D ở trên ----
-    const texLoader = new THREE.TextureLoader();
-    const texCache = {};
-    function tex(name) {
-      if (!texCache[name]) texCache[name] = texLoader.load(`assets/${name}.webp`);
-      return texCache[name];
-    }
     // [file, width, aspect(h/w), offset xyz, additive, opacity]
     const GALAXY_ART = [
       [['nebula-violet', 5.2, 0.95, [0, 0, -0.6], true, 0.55]],
       [['nebula-cyan', 5.0, 0.91, [0, 0, -0.6], true, 0.6]],
       [['nebula-magenta', 6.4, 1, [0, 0.2, -0.8], true, 0.5]],
-      [['nebula-violet', 5.0, 0.95, [0, 0, -0.6], true, 0.45], ['domi', 0.55, 1.28, [0.95, 0.55, 0.4], false, 1]],
+      [['nebula-violet', 5.0, 0.95, [0, 0, -0.6], true, 0.45]],
       [['nebula-cyan', 5.0, 0.91, [0, 0, -0.6], true, 0.45]]
     ];
     const artGroups = GALAXY_DEFS.map((def, idx) => {
@@ -1903,14 +2183,15 @@
     // hostGalaxy: thiên hà mà camera đang đứng (nơi bay vào từ toàn cảnh).
     // currentGalaxy: nội dung đang xem. Khi chuyển thiên hà ở bên trong, hành tinh mới được "ký sinh" lên đúng chỗ host bằng Venom.
     let hostGalaxy = null;
+    let insideSince = 0;
     let morph = null; // { from, to, t0, dur }
     const MORPH_MS = 800;
     const morphCenter = new THREE.Vector3();
 
     function setCamFor(hostIdx, viewIdx) {
-      const def = GALAXY_DEFS[hostIdx], v = PLANETS[viewIdx].view;
-      camTargetPos.set(def.pos.x, def.pos.y + v * 0.24, def.pos.z + v);
-      camTargetLook.copy(def.pos);
+      const pos = systems[hostIdx].system.position, v = PLANETS[viewIdx].view;
+      camTargetPos.set(pos.x, pos.y + v * 0.24, pos.z + v);
+      camTargetLook.copy(pos);
     }
 
     function startMorph(from, to, dir) {
@@ -1951,6 +2232,7 @@
       if (currentGalaxy === null) {
         // Từ toàn cảnh: bay camera vào thiên hà
         hostGalaxy = idx;
+        insideSince = performance.now();
         document.body.classList.add('in-galaxy');
         universeRotY = 0; // reset góc xoay vũ trụ để vị trí thiên hà ổn định
         universeRotX = 0;
@@ -1974,6 +2256,7 @@
       leftGalTitle.textContent = def.title;
       leftGalDesc.textContent = def.desc;
       interiorConsole.scrollTop = 0;
+      document.getElementById('navCounter').innerHTML = `<b>0${idx + 1}</b> / 05`;
     }
 
     function returnToUniverse() {
@@ -1982,7 +2265,7 @@
       if (currentGalaxy !== hostGalaxy) {
         // Hành tinh đang xem không phải của host: dịch camera sang nhà của nó (cùng góc nhìn) rồi mới bay ra,
         // để hành tinh trước mặt không bị đổi đột ngột
-        const delta = GALAXY_DEFS[currentGalaxy].pos.clone().sub(GALAXY_DEFS[hostGalaxy].pos);
+        const delta = systems[currentGalaxy].system.position.clone().sub(systems[hostGalaxy].system.position);
         camera.position.add(delta);
         currentLook.add(delta);
         systems[currentGalaxy].tilt.quaternion.copy(systems[hostGalaxy].tilt.quaternion);
@@ -2170,6 +2453,10 @@
 
     // Chạy full 60/120fps mượt mà, nội suy độc lập tốc độ khung hình (exponential damping) để bay vào cực nhanh và không giật
     let lastFrame = performance.now();
+    const OV_SCALE = 1.45;        // độ phóng hành tinh ở màn chính (toàn cảnh 5 thiên hà) trên máy tính
+    const OV_SCALE_MOBILE = 0.78; // điện thoại: hành tinh nhỏ gọn để 5 thiên hà không chồng lên nhau
+    const MOBILE_MQ = window.matchMedia('(max-width: 960px)'); // khớp đúng breakpoint CSS
+    let ovScale = OV_SCALE;
     const viewOff = { x: 0, y: 0 };
     // Máy yếu: cứ mỗi 90 khung hình đo một lần; nếu trung bình chậm hơn ~45fps thì hạ độ phân giải (2 nấc)
     let perfFrames = 0, perfSum = 0, quality = 0;
@@ -2194,6 +2481,8 @@
       const fastEase = 1 - Math.exp(-14.5 * dtSec);  // bay camera cực nhanh & mượt (~0.25s tới đích)
       const lookEase = 1 - Math.exp(-17.0 * dtSec);
       const softEase = 1 - Math.exp(-9.0 * dtSec);
+      const vw = window.innerWidth, vh = window.innerHeight;
+      const isMobile = MOBILE_MQ.matches;
 
       // Spin each of the 5 galaxies around its local axis
       const step60 = dtSec * 60;
@@ -2205,7 +2494,10 @@
       // Hành tinh 3D: tự quay, phụ kiện quay, shader chạy theo thời gian
       const tSec = now * 0.001;
       timedMats.forEach((m) => { m.uniforms.uTime.value = tSec; });
+      // Màn chính phóng to hành tinh (cả phụ kiện + icon) cho dễ nhìn; bay vào thì thu về cỡ gốc
+      ovScale += ((currentGalaxy === null ? (isMobile ? OV_SCALE_MOBILE : OV_SCALE) : 1) - ovScale) * fastEase;
       systems.forEach((s, i) => {
+        s.group.scale.setScalar(ovScale);
         s.planet.rotation.y += 0.0018 * step60;
         if (i !== hostGalaxy) s.tilt.quaternion.slerp(IDENTITY_Q, softEase); // thiên hà không có camera tự trả về tư thế gốc
         // Đang ở trong: chỉ hiện hành tinh đang xem (+ hành tinh cũ khi Venom đang phủ); làm mờ bụi sao của thiên hà khác
@@ -2237,7 +2529,7 @@
         B.acc.scale.setScalar(Math.max(0.001, back));                                         // phụ kiện mới bung nở
         if (k >= 1) finishMorph();
       }
-      lineMat.opacity += ((currentGalaxy === null ? 0.12 : 0) - lineMat.opacity) * fastEase;
+      lineMat.opacity += ((currentGalaxy === null && !isMobile ? 0.12 : 0) - lineMat.opacity) * fastEase;
       spinners.forEach(([o, axis, speed]) => { o.rotation[axis] += speed * step60; });
       bobbers.forEach(([sp, y], i) => { sp.position.y = y + Math.sin(tSec * 1.6 + i) * 0.03; });
       if (currentGalaxy !== null && !isDragging && spinning) {
@@ -2247,11 +2539,26 @@
         spinVY *= decay;
       }
 
-      // Dịch khung hình để hành tinh nằm giữa phần màn hình bên trái không bị bảng nội dung che
-      const vw = window.innerWidth, vh = window.innerHeight;
-      const inside = currentGalaxy !== null && vw > 960;
-      const wantX = inside ? vw / 2 - (vw - 38 - Math.min(760, vw - 76)) / 2 : 0;
-      const wantY = inside ? vh * 0.06 : 0;
+      // Thích ứng toạ độ 5 thiên hà: Desktop dàn ngang, Mobile (portrait) xếp zích-zắc dọc
+      const targetPosList = isMobile ? POS_MOBILE : POS_DESKTOP;
+      systems.forEach((s, idx) => {
+        s.system.position.lerp(targetPosList[idx], fastEase);
+        artGroups[idx].position.copy(s.system.position);
+      });
+      const linePosAttr = lineGeo.attributes.position;
+      const linePairs = [[0,2], [1,2], [3,2], [4,2], [0,1], [3,4]];
+      let li = 0;
+      linePairs.forEach(([a, b]) => {
+        const pa = systems[a].system.position, pb = systems[b].system.position;
+        linePosAttr.setXYZ(li++, pa.x, pa.y, pa.z);
+        linePosAttr.setXYZ(li++, pb.x, pb.y, pb.z);
+      });
+      linePosAttr.needsUpdate = true;
+
+      // Dịch khung hình: Desktop lệch trái nhường chỗ bảng chữ; Mobile đẩy lên nửa trên nhường chỗ khay kéo đáy
+      const inside = currentGalaxy !== null;
+      const wantX = inside && !isMobile ? vw / 2 - (vw - 38 - Math.min(760, vw - 76)) / 2 : 0;
+      const wantY = inside && !isMobile ? vh * 0.06 : 0;
       viewOff.x += (wantX - viewOff.x) * fastEase;
       viewOff.y += (wantY - viewOff.y) * fastEase;
       if (Math.abs(viewOff.x) > 0.5 || Math.abs(viewOff.y) > 0.5) camera.setViewOffset(vw, vh, viewOff.x, viewOff.y, vw, vh);
@@ -2268,8 +2575,7 @@
           const breathe = u.layer === 0 ? 1 + Math.sin(t * 0.6 + gi) * 0.04 : 1 + Math.sin(t * 1.2 + gi) * 0.012;
           sp.scale.set(u.baseScale.x * u.k * breathe, u.baseScale.y * u.k * breathe, 1);
           if (u.layer === 0) sp.material.rotation = t * 0.03 * (gi % 2 ? -1 : 1);
-          sp.material.opacity += (u.baseOp * dim * (u.layer === 0 ? 1 + focus * 0.4 : 1) - sp.material.opacity) * fastEase;
-          if (u.file === 'domi') sp.position.y = u.baseY + Math.sin(t * 1.6) * 0.06; // DOMI lơ lửng
+          sp.material.opacity += (u.baseOp * dim * (isMobile ? 0.45 : 1) * (u.layer === 0 ? 1 + focus * 0.4 : 1) - sp.material.opacity) * fastEase;
         });
       });
 
@@ -2304,7 +2610,7 @@
         galaxyMeshes.forEach((mesh, idx) => {
           // Đặt nhãn ngay dưới hành tinh 3D (cộng phần vành/vòm) để không che mất khối 3D
           projVec.setFromMatrixPosition(mesh.matrixWorld);
-          labelVec.setFromMatrixColumn(camera.matrixWorld, 1).multiplyScalar(-PLANETS[idx].r * LABEL_GAP[idx]).add(projVec);
+          labelVec.setFromMatrixColumn(camera.matrixWorld, 1).multiplyScalar(-PLANETS[idx].r * LABEL_GAP[idx] * ovScale).add(projVec);
           projVec.project(camera);
           labelVec.project(camera);
           const x = (projVec.x * 0.5 + 0.5) * window.innerWidth;
@@ -2319,7 +2625,7 @@
         // Nhãn bị nhãn gần hơn che thì ẩn đi
         markers.forEach((a) => {
           const hidden = [...markers].some((b) => b !== a && b._z > a._z &&
-            Math.abs(a._x - b._x) < 230 && Math.abs(a._y - b._y) < 56);
+            Math.abs(a._x - b._x) < (isMobile ? 120 : 230) && Math.abs(a._y - b._y) < (isMobile ? 30 : 56));
           if (a._hid !== hidden) {
             a._hid = hidden;
             a.style.opacity = hidden ? 0 : 1;
@@ -2328,6 +2634,8 @@
         });
       }
 
+      // Điện thoại đang xem thông tin: màn hình thông tin che kín cảnh 3D -> khỏi vẽ (đỡ nóng máy, đỡ hao pin)
+      if (inside && isMobile && performance.now() - insideSince > 400) return;
       renderer.render(scene, camera);
     }
     animate();

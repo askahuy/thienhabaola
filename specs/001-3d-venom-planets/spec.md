@@ -72,3 +72,12 @@ Khi đang ở bên trong một thiên hà (`Interior Mode`), người dùng khô
 - **Cỡ hành tinh khi bay vào**: đã vừa mắt. **DOMI ở 04**: giữ nguyên (đang chờ chọn ý tưởng nâng cấp).
 - **Hình đi kèm (companion) cho 01, 02, 03, 05** giống cách DOMI đứng cạnh hành tinh 04: đang chờ người dùng chọn.
 
+---
+
+## 5. Quy chuẩn giao diện Mobile (`max-width: 960px`, chốt lại 13/11 chiều)
+
+- **Toàn cảnh 5 thiên hà**: xếp zích-zắc dọc, hành tinh thu nhỏ (`OV_SCALE_MOBILE = 0.78`) để không chồng nhau; tắt đường nối chòm sao; tinh vân nền mờ 45%; nhãn thiên hà là chữ trơn không khung; lời giới thiệu chỉ còn eyebrow + tiêu đề trên nền gradient tối (bỏ đoạn phụ, bỏ thanh STATUS).
+- **Mở 1 thiên hà**: KHÔNG hiện hành tinh nữa, chỉ hiện thông tin toàn màn hình (nền tối đặc). Thanh trên: `← VŨ TRỤ` bên trái, `‹ 03 / 05 ›` bên phải. Không có hiệu ứng Venom trên điện thoại.
+- **Hiệu năng**: khi đang xem thông tin trên điện thoại, ngừng vẽ cảnh 3D (đỡ nóng máy, hao pin).
+- **Nội dung**: các lưới 3 cột xếp thành 1 cột; lưới 5 giải pháp (05) thành 2 cột; vật phẩm merch 3 cột; quy trình 5 bước (02) vuốt ngang.
+- **DOMI**: nằm trong `systems[3].acc`, luôn đi cùng hành tinh 04 (cả khi chuyển bằng Venom trên máy tính).
