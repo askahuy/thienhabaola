@@ -1916,9 +1916,10 @@
     function startMorph(from, to, dir) {
       if (morph) finishMorph();
       const A = systems[from], B = systems[to];
-      const rA = PLANETS[from].r * A.planet.scale.x;
-      systems[hostGalaxy].tilt.add(B.group);            // đặt hành tinh mới vào đúng chỗ hành tinh đang đứng
-      B.planet.scale.setScalar((rA * 1.07) / PLANETS[to].r); // dày hơn 7% để lớp Venom trùm LÊN trên bề mặt cũ
+      A.planet.scale.setScalar(1);                             // chốt hành tinh gốc về đúng cỡ chuẩn 1.0 trước khi đo
+      const rA = PLANETS[from].r;
+      systems[hostGalaxy].tilt.add(B.group);                   // đặt hành tinh mới vào đúng chỗ hành tinh đang đứng
+      B.planet.scale.setScalar((rA * 1.07) / PLANETS[to].r);   // dày hơn đúng 7% so với cỡ gốc (không bị nhân cộng dồn khi vuốt nhanh)
       B.acc.scale.setScalar(0.001);
       // dir +1 (tới): trào từ dưới lên; -1 (lùi): trùm từ trên xuống
       [[A, -1], [B, 1]].forEach(([s, mode]) => {
@@ -1938,8 +1939,9 @@
         s.atm.material.uniforms.uStrength.value = 1;
         s.acc.scale.setScalar(1);
       });
+      A.planet.scale.setScalar(1); // trả hành tinh cũ về cỡ gốc ngay lập tức
       // Ẩn hành tinh cũ NGAY trong khung hình này (nếu đợi vòng render sau sẽ bị nháy lại 1 frame)
-      if (morph.from !== currentGalaxy) A.group.visible = false;
+      if (morph.from !== morph.to) A.group.visible = false;
       morph = null;
     }
 
@@ -2001,15 +2003,15 @@
     window.returnToUniverse = returnToUniverse;
 
     // ============================================================================
-    // 3b. LĂN CHUỘT / VUỐT ĐỂ SANG THIÊN HÀ KẾ — mỗi cú lăn 1 thiên hà, chạy xong mới nhận cú tiếp, đi vòng 05 ↔ 01
+    // 3b. LĂN CHUỘT / VUỐT ĐỂ SANG THIÊN HÀ KẾ — chuyển ngay theo mỗi cú vuốt/lăn (không bắt đợi morph xong), đi vòng 05 ↔ 01
     // ============================================================================
-    const GESTURE_GAP_MS = 200; // các sự kiện wheel cách nhau ít hơn mức này = cùng 1 cú lăn (kể cả quán tính trackpad)
-    const WHEEL_TRIGGER = 30;   // cộng dồn đủ 30px trong 1 cú lăn mới chuyển (trackpad Mac bắt đầu bằng vài nhịp 1–3px)
-    let lastWheelAt = 0, wheelAcc = 0, wheelUsed = false;
+    const GESTURE_GAP_MS = 180; // khoảng ngắt giữa 2 cú vuốt trackpad/chuột
+    const WHEEL_TRIGGER = 28;   // cộng dồn đủ 28px là kích hoạt ngay
+    let lastWheelAt = 0, wheelAcc = 0, wheelUsed = false, wPeak = 0, wTrough = Infinity, wDecay = false, lastTrigAt = 0;
     let touchStart = null;
 
     function stepGalaxy(dir) {
-      if (currentGalaxy === null || morph) return; // đang biến hình thì bỏ qua
+      if (currentGalaxy === null) return; // đổi ngay lập tức dù đang biến hình dở
       enterGalaxy((currentGalaxy + dir + 5) % 5, dir);
     }
     // Trong bảng chi tiết: lăn/vuốt chỉ để cuộn đọc chữ, KHÔNG bao giờ chuyển thiên hà (chốt 13/11)
@@ -2019,14 +2021,28 @@
 
     window.addEventListener('wheel', (e) => {
       const now = performance.now();
-      if (now - lastWheelAt > GESTURE_GAP_MS) { wheelAcc = 0; wheelUsed = false; } // bắt đầu cú lăn mới
-      lastWheelAt = now;
-      if (currentGalaxy === null || wheelUsed || e.deltaY === 0) return;
       const dy = e.deltaY * (e.deltaMode === 1 ? 16 : 1); // Firefox báo theo dòng
+      const abs = Math.abs(dy);
+      // 1 cú vuốt = đúng 1 thiên hà. Cú vuốt mới được nhận khi: ngắt tay > 180ms, đổi chiều,
+      // hoặc đang trôi quán tính (lực đã giảm < 50% đỉnh) mà lực bỗng vọt lên mạnh trở lại.
+      let fresh = now - lastWheelAt > GESTURE_GAP_MS || (wheelAcc !== 0 && abs > 4 && Math.sign(dy) !== Math.sign(wheelAcc));
+      if (!fresh && wheelUsed) {
+        if (abs > wPeak) wPeak = abs;                 // vẫn đang tăng lực của cú vuốt hiện tại
+        else if (abs < wPeak * 0.5) wDecay = true;    // đã sang pha trôi quán tính
+        if (wDecay) {
+          wTrough = Math.min(wTrough, abs);
+          if (now - lastTrigAt > 300 && abs >= 15 && abs > wTrough * 2.5 + 6) fresh = true;
+        }
+      }
+      if (fresh) { wheelAcc = 0; wheelUsed = false; wPeak = 0; wTrough = Infinity; wDecay = false; }
+      lastWheelAt = now;
+      if (abs > wPeak) wPeak = abs;
+      if (currentGalaxy === null || wheelUsed || dy === 0) return;
       if (!consoleAllows(e.target.closest('.interior-console'))) { wheelAcc = 0; return; }
       wheelAcc += dy;
       if (Math.abs(wheelAcc) < WHEEL_TRIGGER) return;
-      wheelUsed = true; // cả phần còn lại của cú lăn (quán tính) bị bỏ qua
+      wheelUsed = true; // phần còn lại của cú vuốt (kể cả quán tính) bị bỏ qua
+      lastTrigAt = now;
       stepGalaxy(Math.sign(wheelAcc));
     }, { passive: true });
 

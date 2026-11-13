@@ -65,7 +65,7 @@ Khi đang ở bên trong một thiên hà (`Interior Mode`), người dùng khô
 
 - **Venom**: tới = trào từ dưới lên, lùi = trùm từ trên xuống; mép lượn sóng mượt + viền neon mảnh (phong cách 2), không gờ cao; thời lượng 0.8s (đã duyệt); viền sáng và tinh vân nền giữ nguyên như hiện tại.
 - **Bấm chuyển thiên hà khi đang ở trong** = biến hình tại chỗ; chỉ khi thoát ra mới về bản đồ 5 hành tinh.
-- **Lăn chuột / vuốt (thay FR-004 bản đầu)**: KHÔNG bám theo tay. Mỗi cú lăn / vuốt = sang đúng 1 thiên hà, chạy xong hiệu ứng mới nhận cú tiếp theo. Quán tính trackpad được gộp vào cùng một cú lăn (các sự kiện cách nhau < 200ms). Thêm phím ↑ ↓ và 2 nút trên màn hình.
+- **Lăn chuột / vuốt (thay FR-004 bản đầu)**: Mỗi cú lăn / vuốt = sang ngay 1 thiên hà tiếp theo mà KHÔNG bắt đợi hiệu ứng biến hình trước chạy xong (nếu đang biến hình dở sẽ chốt nhanh trạng thái cũ và bắt đầu biến hình sang hành tinh mới ngay lập tức). Nhận diện cú vuốt liên tiếp trên trackpad ngay khi đổi chiều hoặc lực vuốt tăng vọt trở lại. Thêm phím ↑ ↓ và 2 nút trên màn hình.
 - **Trong bảng chi tiết** (thay US3 kịch bản 2): lăn / vuốt chỉ để cuộn đọc chữ, KHÔNG BAO GIỜ chuyển thiên hà, kể cả khi đã cuộn chạm đáy. Chỉ lăn ở bên ngoài bảng mới chuyển.
 - **Hình đi kèm**: icon nét mảnh tối giản 1A micro (01), 2A ba vòng tròn (02), 3A vòm lưới (03), 5A hộp quà (05); 04 giữ DOMI.
 - **Hiệu năng**: phải chạy được trên máy yếu → tự hạ độ phân giải khi đo thấy chậm.
